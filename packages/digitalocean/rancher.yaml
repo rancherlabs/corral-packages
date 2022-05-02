@@ -1,0 +1,22 @@
+manifest:
+  name: rancher
+  description: rancher
+  variables:
+    server_count:
+      default: 1
+templates:
+  - digitalocean/cluster_nodes
+  - k3s
+  - rancher
+variables:
+  image:
+    - ubuntu-20-04-x64
+    - ubuntu-20-10-x64
+  kubernetes_version:
+    - v1.23.6+k3s1
+  rancher_version:
+    - 2.6.4
+    - 2.6.3
+    - 2.6.2
+    - 2.6.1
+    - 2.6.0

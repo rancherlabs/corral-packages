@@ -1,0 +1,20 @@
+name: k3s
+description: >
+  A single node k3s cluster.
+variables:
+  kubernetes_version:
+    type: string
+  kubeconfig:
+    type: string
+    readOnly: true
+    description: "Kubeconfig for the cluster encoded as a base64 string."
+commands:
+  - command: "/opt/corral/k3s/init-cluster.sh"
+    node_pools:
+      - bastion
+  - command: "/opt/corral/k3s/init-server.sh"
+    node_pools:
+      - server
+  - command: "/opt/corral/k3s/init-agent.sh"
+    node_pools:
+      - agent
