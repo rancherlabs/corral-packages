@@ -5,13 +5,11 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	corralpkg "github.com/rancherlabs/corral/pkg/package"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
 
@@ -20,51 +18,81 @@ type Manifest struct {
 	Description string
 }
 
+type OrderedMap struct {
+	Values   map[string][]string
+	Ordering []string
+}
+
+func (o *OrderedMap) UnmarshalYAML(value *yaml.Node) error {
+	if value.Kind != yaml.MappingNode {
+		return fmt.Errorf("cannot unmarshal orderedmap for %v", value.Kind)
+	}
+	o.Values = map[string][]string{}
+	o.Ordering = []string{}
+	prev := ""
+	for _, v := range value.Content {
+		switch v.Kind {
+		case yaml.ScalarNode:
+			o.Ordering = append(o.Ordering, v.Value)
+			prev = v.Value
+		case yaml.SequenceNode:
+			if prev == "" {
+				return fmt.Errorf("variables must be a map")
+			}
+			tmp := make([]string, len(v.Content))
+			err := v.Decode(&tmp)
+			if err != nil {
+				return err
+			}
+			o.Values[prev] = tmp
+		}
+	}
+
+	return nil
+}
+
 type Package struct {
 	Manifest  Manifest
 	Templates []string
-	Variables map[string][]string
+	Variables OrderedMap
 }
 
 func main() {
-	log.Info("Removing existing packages")
+	logrus.Info("Removing existing packages")
 	err := os.RemoveAll("dist")
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 
-	log.Info("Creating dist folder")
+	logrus.Info("Creating dist folder")
 	err = os.MkdirAll("dist", 0775)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
-
 
 	filepath.Walk(os.Args[1], func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}
 
-		log.Infof("Processing %s", path)
+		logrus.Infof("processing %s", path)
 
 		body, err := os.ReadFile(path)
 		if err != nil {
-			log.Fatal(err)
+			logrus.Fatal(err)
 		}
 
-		var p Package
+		p := Package{}
 		if err = yaml.Unmarshal(body, &p); err != nil {
-			log.Fatal(err)
+			logrus.Fatal(err)
 		}
-
-		log.Info("Loading templates")
 
 		packages := make([]corralpkg.Package, len(p.Templates))
 		for i, t := range p.Templates {
-			log.Debugf("Loading template for %s", t)
+			logrus.Infof("Loading template for %s", t)
 			merge, err := corralpkg.LoadPackage(filepath.Join("templates", t))
 			if err != nil {
-				log.Fatal(err)
+				logrus.Fatal(err)
 			}
 			packages[i] = merge
 		}
@@ -77,16 +105,17 @@ func main() {
 			}
 		}
 
-		tmplName := strings.Join(p.Templates, "-")
-
-		log.Infof("Generating staging template %s", tmplName)
-
-		tmpl, err := corralpkg.MergePackages(filepath.Join("staging", tmplName), packages)
+		tmplLocation, err := os.MkdirTemp(os.TempDir(), "corral-packages")
 		if err != nil {
-			log.Fatal(err)
+			logrus.Fatal(err)
+		}
+		defer os.RemoveAll(tmplLocation)
+
+		tmpl, err := corralpkg.MergePackages(tmplLocation, packages)
+		if err != nil {
+			logrus.Fatal(err)
 		}
 
-		// todo this logic is duplicated by corral/cmd/package.Template, fix
 		for i := range packages {
 			if i > 0 {
 				tmpl.Description += "\n"
@@ -96,34 +125,36 @@ func main() {
 				tmpl.Description += packages[i].Description
 			}
 		}
-		tmpl.Name = filepath.Base(tmplName)
+		tmpl.Name = strings.Join(p.Templates, "-")
 
 		buf, _ := yaml.Marshal(tmpl)
 
-		err = os.WriteFile(filepath.Join("staging", tmplName, "manifest.yaml"), buf, 0664)
+		err = os.WriteFile(filepath.Join(tmplLocation, "manifest.yaml"), buf, 0664)
 		if err != nil {
-			log.Fatal("failed to write manifest: ", err)
+			logrus.Fatal("failed to write manifest: ", err)
 		}
 
-		log.Info("Generating variable manifests")
+		logrus.Info("Generating variable manifests")
 
-		err = os.MkdirAll("variables", 0775)
+		tmplPkg, err := corralpkg.LoadPackage(tmplLocation)
 		if err != nil {
-			log.Fatal(err)
-		}
-
-		tmplPkg, err := corralpkg.LoadPackage(filepath.Join("staging", tmplName))
-		if err != nil {
-			log.Fatal(err)
+			logrus.Fatal(err)
 		}
 
 		varPkgs := map[string][]corralpkg.Package{}
 
-		for varName, vars := range p.Variables {
-			log.Infof("Generating variable manifests for %s", varName)
-			err = os.MkdirAll(filepath.Join("variables", varName), 0775)
+		for varName, vars := range p.Variables.Values {
+			logrus.Infof("Generating variable manifests for %s", varName)
+
+			varLocation, err := os.MkdirTemp(os.TempDir(), "corral-packages")
 			if err != nil {
-				log.Fatal(err)
+				logrus.Fatal(err)
+			}
+			defer os.RemoveAll(varLocation)
+
+			err = os.MkdirAll(filepath.Join(varLocation, varName), 0775)
+			if err != nil {
+				logrus.Fatal(err)
 			}
 
 			type VariableManifest struct {
@@ -138,10 +169,10 @@ func main() {
 				r := regexp.MustCompile("[^A-Za-z-_0-9.]")
 				name := r.ReplaceAllString(v, "-")
 
-				log.Debugf("Generating variable manifests for %s to pin at %s", varName, v)
+				logrus.Debugf("Generating variable manifests for %s to pin at %s", varName, v)
 				varManifest := VariableManifest{
-					RootPath: filepath.Join("variables", varName, name),
-					Name:     name,
+					RootPath:    filepath.Join(varLocation, varName, name),
+					Name:        name,
 					Description: fmt.Sprintf("%s is pinned to %s.", varName, v),
 					Variables: map[string]interface{}{
 						varName: struct {
@@ -155,25 +186,24 @@ func main() {
 				}
 				buf, err = yaml.Marshal(varManifest)
 				if err != nil {
-					log.Fatal(err)
+					logrus.Fatal(err)
 				}
 
-				varRoot := filepath.Join("variables", varName, name)
+				varRoot := filepath.Join(varLocation, varName, name)
 
 				err = os.MkdirAll(varRoot, 0775)
 				if err != nil {
-					log.Fatal(err)
+					logrus.Fatal(err)
 				}
 
-				// todo this logic is duplicated by corral/cmd/package.Template, fix
 				err = os.WriteFile(filepath.Join(varRoot, "manifest.yaml"), buf, 0664)
 				if err != nil {
-					log.Fatal(err)
+					logrus.Fatal(err)
 				}
 
 				varPkg, err := corralpkg.LoadPackage(varRoot)
 				if err != nil {
-					log.Fatal(err)
+					logrus.Fatal(err)
 				}
 				if _, ok := varPkgs[varName]; !ok {
 					varPkgs[varName] = []corralpkg.Package{}
@@ -182,25 +212,14 @@ func main() {
 			}
 		}
 
-		// This order isn't strictly perfect according to the yaml definition due to map iteration order, so this is
-		// currently a best effort approximation assuming the variables should be ordered alphabetically.
 		varMatrix := make([][]corralpkg.Package, len(varPkgs))
-		keys := make([]string, len(varPkgs))
-		{
-			i := 0
-			for k := range varPkgs {
-				keys[i] = k
-				i++
-			}
-		}
-		sort.Strings(keys)
-		for i, v := range keys {
+		for i, v := range p.Variables.Ordering {
 			varMatrix[i] = varPkgs[v]
 		}
 
 		product := cartesianProductN[corralpkg.Package](varMatrix)
 		for _, vars := range product {
-			names := []string{tmplName}
+			names := []string{tmpl.Name}
 			pkgs := []corralpkg.Package{tmplPkg}
 			for _, v := range vars {
 				names = append(names, v.Name)
@@ -209,25 +228,24 @@ func main() {
 
 			name := strings.Join(names, "-")
 
-			tmpl, err = corralpkg.MergePackages(filepath.Join("dist", name), append([]corralpkg.Package{tmplPkg}, vars...))
+			distTmpl, err := corralpkg.MergePackages(filepath.Join("dist", name), append([]corralpkg.Package{tmplPkg}, vars...))
 			if err != nil {
-				log.Fatal(err)
+				logrus.Fatal(err)
 			}
-			tmpl.Description = tmplPkg.Description
+			distTmpl.Description = tmplPkg.Description
 
-			// todo this logic is duplicated by corral/cmd/package.Template, fix
 			for i := range vars {
-				if len(tmpl.Description) > 0 {
-					tmpl.Description += "\n\n"
+				if len(distTmpl.Description) > 0 {
+					distTmpl.Description += "\n\n"
 				}
 
-				tmpl.Description += vars[i].Description
+				distTmpl.Description += vars[i].Description
 			}
-			tmpl.Name = name
+			distTmpl.Name = name
 
-			buf, err = yaml.Marshal(tmpl)
+			buf, err = yaml.Marshal(distTmpl)
 			if err != nil {
-				log.Fatal(err)
+				logrus.Fatal(err)
 			}
 
 			err = os.WriteFile(filepath.Join("dist", name, "manifest.yaml"), buf, 0664)
@@ -238,16 +256,6 @@ func main() {
 
 		return nil
 	})
-
-	err = os.RemoveAll("staging")
-	if err != nil {
-		log.Warnf("Could not remove staging directory")
-	}
-
-	err = os.RemoveAll("variables")
-	if err != nil {
-		log.Warnf("Could not remove variables directory")
-	}
 }
 
 // create a n-ary cartesian product where the dimension is equal to len(t)
