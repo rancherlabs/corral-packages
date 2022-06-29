@@ -9,6 +9,8 @@ helm upgrade \
   --create-namespace \
   -n cert-manager \
   --set installCRDs=true \
-  --version v1.5.0 \
+  --version v1.8.0 \
   --wait \
   cert-manager jetstack/cert-manager
+
+sleep 1m
