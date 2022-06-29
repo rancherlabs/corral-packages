@@ -1,0 +1,22 @@
+name: rke2-dualstack
+description: >
+  A dual stack enabled RKE2 cluster.
+variables:
+  cni:
+    type: string
+  kubernetes_version:
+    type: string
+  kubeconfig:
+    type: string
+    readOnly: true
+    description: "Kubeconfig for the cluster encoded as a base64 string."
+commands:
+  - command: "/opt/corral/rke2/init-cluster.sh"
+    node_pools:
+      - bastion
+  - command: "/opt/corral/rke2/init-server.sh"
+    node_pools:
+      - server
+  - command: "/opt/corral/rke2/init-agent.sh"
+    node_pools:
+      - agent

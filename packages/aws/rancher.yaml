@@ -1,0 +1,23 @@
+manifest:
+  name: rancher
+  description: rancher
+  variables:
+    server_count:
+      default: 1
+templates:
+  - aws/cluster_nodes
+  - rke2
+  - rancher
+variables:
+  cni:
+    - calico
+  kubernetes_version:
+    - v1.23.6+rke2r1
+  rancher_version:
+    - 2.6.7
+    - 2.6.5
+    - 2.6.4
+    - 2.6.3
+    - 2.6.2
+    - 2.6.1
+    - 2.6.0
