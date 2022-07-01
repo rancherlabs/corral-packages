@@ -1,0 +1,74 @@
+name: aws-cluster-nodes
+description: |
+  Creates ec2 instances in AWS with a load balancer, and a route 53 record entry.
+variables:
+  aws_access_key:
+    sensitive: true
+    type: string
+    optional: false
+    description: "aws API access key"
+  aws_secret_key:
+    sensitive: true
+    type: string
+    optional: false
+    description: "aws API secret key"
+  aws_region:
+    type: string
+    optional: false
+    description: "The region the ec2 instance would be created"
+  aws_ami:
+    type: string
+    optional: false
+    description: "The image of the ec2 instance"
+  aws_hostname_prefix:
+    sensitive: false
+    type: string
+    optional: false
+    description: "The domain to use for the api url."
+  aws_route53_zone:
+    type: string
+    optional: false
+    description: "The route 53 hosted zone"
+  aws_ssh_user:
+    type: string
+    optional: false
+    description: "The user need to initally ssh into an instance i.e ubuntu"
+  aws_security_group:
+    type: string
+    optional: false
+    description: "The security group needed for an ec2 instance"
+  aws_vpc:
+    type: string
+    optional: false
+    description: "The vpc of where the target group is located"
+  aws_subnet:
+    type: string
+    optional: false
+    description: "The subnet where the ec2 instance and the load balancer is created"
+  instance_type:
+    type: string
+    optional: false
+    description: "What size ec2 instance to use for the nodes."
+  fqdn:
+    type: string
+    readOnly: true
+    description: "Public DNS A record that directs to the bastion node."
+  kube_api_host:
+    type: string
+    readOnly: true
+    description: "Public DNS A record that directs to the bastion node."
+  server_count:
+    type: integer
+    optional: false
+    description: "How many server nodes should be created."
+  agent_count:
+    type: integer
+    optional: false
+    description: "How many agent nodes should be created."
+commands:
+  - module: pools
+  - command: "echo \"$CORRAL_corral_user_public_key\" >> /$(whoami)/.ssh/authorized_keys"
+    node_pools:
+      - bastion
+      - server
+      - agent

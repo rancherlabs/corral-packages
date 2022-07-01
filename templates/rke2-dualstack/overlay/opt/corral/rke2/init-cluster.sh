@@ -1,0 +1,36 @@
+#!/bin/bash
+
+CORRAL_api_host="${CORRAL_fqdn}"
+echo "corral_set api_host=${CORRAL_api_host}"
+
+public_ipv4=$(curl ifconfig.me)
+addresses=$(hostname -I)
+private_ipv4=$(echo ${addresses} | cut -d " " -f 1)
+ipv6=$(echo ${addresses} | cut -d " " -f 3)
+nodename=$(hostname -f)
+
+mkdir -p /etc/rancher/rke2
+cat > /etc/rancher/rke2/config.yaml <<- EOF
+write-kubeconfig-mode: 644
+cluster-cidr: 10.42.0.0/16,2001:cafe:42:0::/56
+service-cidr: 10.43.0.0/16,2001:cafe:42:1::/112
+cni: ${CORRAL_cni}
+node-ip: ${private_ipv4},${ipv6}
+node-external-ip: ${public_ipv4},${ipv6}
+tls-san:
+  - ${CORRAL_api_host}
+EOF
+
+curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION=${CORRAL_kubernetes_version} sh -
+systemctl enable rke2-server.service
+RET=1
+until [ ${RET} -eq 0 ]; do
+    systemctl start rke2-server.service
+    RET=$?
+    sleep 10
+done
+
+sed -i "s/127.0.0.1/${CORRAL_kube_api_host}/g" /etc/rancher/rke2/rke2.yaml
+
+echo "corral_set kubeconfig=$(cat /etc/rancher/rke2/rke2.yaml | base64 -w 0)"
+echo "corral_set node_token=$(cat /var/lib/rancher/rke2/server/node-token)"
