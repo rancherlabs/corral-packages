@@ -1,0 +1,14 @@
+manifest:
+  name: rke2
+  description: rke2
+  variables:
+    server_count:
+      default: 1
+templates:
+  - aws/cluster_nodes
+  - rke2
+variables:
+  cni:
+    - calico
+  kubernetes_version:
+    - v1.23.6+rke2r1

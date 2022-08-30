@@ -1,0 +1,17 @@
+manifest:
+  name: rancher-dualstack
+  description: rancher-dualstack
+  variables:
+    server_count:
+      default: 1
+templates:
+  - aws-dualstack/cluster_nodes
+  - rke2-dualstack
+  - rancher
+variables:
+  cni:
+    - calico
+  kubernetes_version:
+    - v1.23.6+rke2r1
+  rancher_version:
+    - 2.6.5
