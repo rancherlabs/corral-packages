@@ -1,0 +1,13 @@
+manifest:
+  name: rke2-replace-node
+  description: |
+    rke2-replace-node
+  variables:
+    replace_count:
+      default: 1
+templates:
+  - aws-replace-node
+  - rke2-replace-node
+variables:
+  cni:
+    - calico

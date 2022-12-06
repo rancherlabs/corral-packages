@@ -1,0 +1,26 @@
+
+name: rke2-replace-node
+description: |
+  Replaces a node in an existing rke2 cluster.
+variables:
+  cni:
+    type: string
+  kubeconfig:
+    type: string
+  kube_api_host:
+    type: string
+  node_token:
+    type: string
+commands:
+  - command: /opt/corral/rke2/preflight.sh
+    node_pools:
+      - replace
+  - command: /opt/corral/rke2/delete_nodes.sh
+    node_pools:
+      - replace
+  - command: /opt/corral/rke2/init-replace.sh
+    node_pools:
+      - replace
+  - command: /opt/corral/rke2/postflight.sh
+    node_pools:
+      - replace

@@ -1,0 +1,69 @@
+name: replace_server_nodes
+description: |-
+    Creates ec2 instances in AWS in a single pool.
+commands:
+    - module: pools
+    - command: echo "$CORRAL_corral_user_public_key" >> /$(whoami)/.ssh/authorized_keys
+      node_pools:
+        - replace
+variables:
+    replace_count:
+        description: How many server nodes should be replaced.
+        optional: false
+        type: integer
+    aws_access_key:
+        description: aws API access key
+        optional: false
+        sensitive: true
+        type: string
+    aws_ami:
+        description: The image of the ec2 instance
+        optional: false
+        type: string
+    aws_region:
+        description: The region the ec2 instance would be created
+        optional: false
+        type: string
+    aws_secret_key:
+        description: aws API secret key
+        optional: false
+        sensitive: true
+        type: string
+    aws_security_group:
+        description: The security group needed for an ec2 instance
+        optional: false
+        type: string
+    aws_ssh_user:
+        description: The user need to initally ssh into an instance i.e ubuntu
+        optional: false
+        type: string
+    aws_subnet:
+        description: The subnet where the ec2 instance and the load balancer is created
+        optional: false
+        type: string
+    aws_vpc:
+        description: The vpc of where the target group is located
+        optional: false
+        type: string
+    cni:
+        description: CNI of the cluster
+        default: calico
+    instance_type:
+        description: What size ec2 instance to use for the nodes.
+        optional: false
+        type: string
+    kube_api_host:
+        description: Public DNS A record that directs to the bastion node.
+        optional: false
+        type: string
+        sensitive: true
+    kubeconfig:
+        description: Kubeconfig for the cluster encoded as a base64 string.
+        optional: false
+        type: string
+        sensitive: true
+    node_token:
+        description: token of the rke2 node to join
+        optional: false
+        type: string
+        sensitive: true
