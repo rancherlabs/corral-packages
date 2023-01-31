@@ -1,0 +1,27 @@
+manifest:
+  name: rancher-registry
+  description: rancher-registry
+  variables:
+    registry_auth:
+      default: enabled
+templates:
+  - aws/cluster_nodes
+  - aws/registry_nodes
+  - registry-standalone
+  - rke2
+  - rancher
+variables:
+  cni:
+    - calico
+  kubernetes_version:
+    - v1.23.10+rke2r1
+  registry_auth:
+    - global
+    - enabled
+    - disabled
+  docker_compose_version:
+    - 2.15.1
+  rancher_version:
+    - 2.7.0
+  cert_manager_version:
+    - 1.8.0

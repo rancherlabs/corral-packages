@@ -16,6 +16,9 @@ variables:
     readOnly: true
     type: string
     description: "Host of newly created rancher instance."
+  cert_manager_version:
+    type: string
+    description: "The cert-manager version for HA rancher install"
 commands:
   - command: /opt/corral/rancher/preflight.sh
     node_pools:
