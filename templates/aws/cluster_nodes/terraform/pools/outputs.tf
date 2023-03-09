@@ -2,8 +2,16 @@ output "fqdn" {
   value = aws_route53_record.aws_route53.fqdn
 }
 
+output "internal_fqdn" {
+  value = var.airgap_setup ? aws_route53_record.aws_route53_internal[0].fqdn : null
+}
+
 output "kube_api_host" {
-  value = aws_instance.server[0].public_ip
+  value = aws_instance.server[0].private_ip
+}
+
+output "airgap_setup" {
+  value = var.airgap_setup
 }
 
 output "corral_node_pools" {
@@ -11,17 +19,20 @@ output "corral_node_pools" {
     bastion = [for instance in [aws_instance.server[0]] : {
       name = instance.tags.Name // unique name of node
       user = "root" // ssh username
-      address = instance.public_ip // address of ssh host
+      address = var.airgap_setup ? instance.private_ip : instance.public_ip // address of ssh host
+      bastion_address = var.airgap_setup ? var.registry_ip : ""
     }]
     server = [for instance in slice(aws_instance.server, 1, var.server_count) : {
       name = instance.tags.Name // unique name of node
       user = "root" // ssh username
-      address = instance.public_ip // address of ssh host
+      address = var.airgap_setup ? instance.private_ip : instance.public_ip // address of ssh host
+      bastion_address = var.airgap_setup ? var.registry_ip : ""
     }]
     agent = [for instance in aws_instance.agent : {
       name = instance.tags.Name // unique name of node
       user = "root" // ssh username
-      address = instance.public_ip // address of ssh host
+      address = var.airgap_setup ? instance.private_ip : instance.public_ip // address of ssh host
+      bastion_address = var.airgap_setup ? var.registry_ip : ""
     }]
   }
 }

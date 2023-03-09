@@ -15,6 +15,7 @@ variables:
     - calico
   kubernetes_version:
     - v1.23.10+rke2r1
+    - v1.24.4+rke2r1
   registry_auth:
     - global
     - enabled
@@ -23,5 +24,7 @@ variables:
     - 2.15.1
   rancher_version:
     - 2.7.0
+    - 2.7.1
+    - 2.7.2
   cert_manager_version:
     - 1.8.0

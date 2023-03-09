@@ -1,0 +1,23 @@
+manifest:
+  name: rancher-airgap
+  description: rancher-airgap
+  variables:
+    server_count:
+      default: 1
+    registry_auth:
+      default: disabled
+templates:
+  - aws/registry_nodes
+  - aws/cluster_nodes
+  - registry-standalone
+  - rke2
+  - rancher-airgap
+variables:
+  cni:
+    - calico
+  airgap_setup:
+    - true
+  docker_compose_version:
+    - 2.15.1
+  cert_manager_version:
+    - 1.8.0

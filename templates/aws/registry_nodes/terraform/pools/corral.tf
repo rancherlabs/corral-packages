@@ -13,3 +13,4 @@ variable "aws_security_group" {}
 variable "aws_vpc" {}
 variable "aws_subnet" {}
 variable "instance_type" {}
+variable "airgap_setup" {}
