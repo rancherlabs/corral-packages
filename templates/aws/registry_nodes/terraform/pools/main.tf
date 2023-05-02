@@ -50,7 +50,13 @@ resource "aws_instance" "registry" {
   }
 
   provisioner "remote-exec" {
-    inline = [
+    inline = var.airgap_setup ? [
+      "sudo su <<EOF",
+      "echo ${var.corral_public_key} ${self.key_name} > /root/.ssh/authorized_keys",
+      "echo \"${var.corral_private_key}\" > /root/.ssh/id_rsa",
+      "chmod 700 /root/.ssh/id_rsa",
+      "EOF",
+    ]: [
       "sudo su <<EOF",
       "echo ${var.corral_public_key} ${self.key_name} > /root/.ssh/authorized_keys",
       "EOF",
@@ -74,7 +80,7 @@ resource "aws_route53_record" "aws_route53" {
   name               = "${aws_instance.registry.tags.Name}"
   type               = "A"
   ttl                = "300"
-  records            = [aws_instance.registry.public_ip]
+  records            = [var.airgap_setup ? aws_instance.registry.private_ip : aws_instance.registry.public_ip]
 }
 
 data "aws_route53_zone" "selected" {

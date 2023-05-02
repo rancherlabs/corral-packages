@@ -40,6 +40,10 @@ variables:
     type: string
     optional: false
     description: "The subnet where the ec2 instance and the load balancer is created"
+  airgap_setup:
+    type: boolean
+    description: "Boolean that when set to true, will set the registry_fqdn to the private IP address, rather than the public IP address."
+    default: false
   instance_type:
     type: string
     optional: false

@@ -6,6 +6,10 @@ output "registry_ip" {
   value = aws_instance.registry.public_ip
 }
 
+output "registry_private_ip" {
+  value = aws_instance.registry.private_ip
+}
+
 output "corral_node_pools" {
   value = {
     registry = [for node in [aws_instance.registry] : {

@@ -11,6 +11,14 @@ variables:
     readOnly: true
     description: "Kubeconfig for the cluster encoded as a base64 string."
 commands:
+  - command: "/opt/corral/rke2/download-rke2.sh"
+    node_pools:
+      - registry
+  - command: "/opt/corral/rke2/scp-rke2-file.sh"
+    node_pools:
+      - bastion
+      - server
+      - agent
   - command: "/opt/corral/rke2/init-cluster.sh"
     node_pools:
       - bastion

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-config="server: https://${CORRAL_api_host}:9345
+config="server: https://${CORRAL_kube_api_host}:9345
 token: ${CORRAL_node_token}
 "
 

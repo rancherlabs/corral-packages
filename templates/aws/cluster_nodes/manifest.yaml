@@ -45,6 +45,10 @@ variables:
     type: string
     optional: false
     description: "The subnet where the ec2 instance and the load balancer is created"
+  airgap_setup:
+    type: boolean
+    description: "Boolean that when set, will create airgap nodes rather regular cluster nodes."
+    default: false
   instance_type:
     type: string
     optional: false

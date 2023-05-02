@@ -16,3 +16,4 @@ variable "aws_subnet" {}
 variable "instance_type" {}
 variable "server_count" {}
 variable "agent_count" {}
+variable "airgap_setup" {}

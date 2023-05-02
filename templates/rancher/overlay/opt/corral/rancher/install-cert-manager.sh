@@ -32,4 +32,6 @@ else
 
 fi
 
+# when attempting to install rancher right after the cert-manager install there is some intermitten issues
+# allowing it to sleep for at least a 1m fixes the issue.
 sleep 1m
