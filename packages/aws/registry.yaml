@@ -1,0 +1,21 @@
+manifest:
+  name: registry
+  description: registry
+  variables:
+    registry_auth:
+      default: enabled
+templates:
+  - aws/registry_nodes
+  - registry-standalone
+variables:
+  registry_auth:
+    - global
+    - enabled
+    - disabled
+  docker_compose_version:
+    - 2.15.1
+  rancher_version:
+    - 2.7.0
+  cert_manager_version:
+    - 1.8.0
+  

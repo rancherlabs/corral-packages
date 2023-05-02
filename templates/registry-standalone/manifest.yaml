@@ -1,0 +1,46 @@
+name: registry
+description: |
+  A docker registry
+variables:
+  registry_fqdn:
+    type: string
+    readOnly: true
+    description: "The registry fqdn"
+  registry_ip:
+    type: string
+    readOnly: true
+    description: "The registry IP address"
+  registry_host:
+    type: string
+    readOnly: true
+    description: "host the configured registry can be accessed at"
+  registry_username:
+    type: string
+    readOnly: true
+    description: "username for registry authentication"
+  registry_password:
+    type: string
+    readOnly: true
+    description: "password for registry authentication"
+  registry_cert:
+    type: string
+    description: "domain certificate"
+  registry_key:
+    type: string
+    description: "domain certificate key"
+  registry_auth:
+    type: string
+    description: "Flag to build an auth enabled registry or no auth"
+  rancher_version:
+    type: string
+    description: "The rancher version to download the images for"
+  cert_manager_version:
+    type: string
+    description: "The cert-manager version for HA rancher install"
+  docker_compose_version:
+    type: string
+    description: "The docker compose version used for running the registry"
+commands:
+  - command: /opt/corral/registry/registry-install.sh
+    node_pools:
+      - registry
