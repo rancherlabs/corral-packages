@@ -19,6 +19,10 @@ variables:
   cert_manager_version:
     type: string
     description: "The cert-manager version for HA rancher install"
+  registry_fqdn:
+    type: string
+    optional: true
+    description: "The registry fqdn"
 commands:
   - command: /opt/corral/rancher/preflight.sh
     node_pools:
