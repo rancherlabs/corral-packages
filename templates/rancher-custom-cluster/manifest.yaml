@@ -1,0 +1,11 @@
+name: rancher-custom-cluster
+description: >
+  Registering a custom cluster to a rancher instance.
+variables:
+  registration_command:
+    type: string
+    description: "registration command to register a node as cluster to a existing rancher instance"
+commands:
+  - command: "/opt/corral/cluster/register-cluster.sh"
+    node_pools:
+      - node

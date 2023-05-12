@@ -7,7 +7,7 @@ output "internal_fqdn" {
 }
 
 output "kube_api_host" {
-  value = aws_instance.server[0].private_ip
+  value = var.airgap_setup ?  aws_instance.server[0].private_ip : aws_instance.server[0].public_ip
 }
 
 output "airgap_setup" {

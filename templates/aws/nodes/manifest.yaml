@@ -1,6 +1,6 @@
 name: aws-cluster-nodes
 description: |
-  Creates ec2 instances in AWS with a load balancer, and a route 53 record entry.
+  Creates an ec2 bastion instance in AWS with an external and internal load balancer, and a route 53 record entry.
 variables:
   aws_access_key:
     sensitive: true
@@ -20,15 +20,6 @@ variables:
     type: string
     optional: false
     description: "The image of the ec2 instance"
-  aws_hostname_prefix:
-    sensitive: false
-    type: string
-    optional: false
-    description: "The domain to use for the api url."
-  aws_route53_zone:
-    type: string
-    optional: false
-    description: "The route 53 hosted zone"
   aws_ssh_user:
     type: string
     optional: false
@@ -53,34 +44,20 @@ variables:
     type: string
     optional: false
     description: "The subnet where the ec2 instance and the load balancer is created"
-  airgap_setup:
-    type: boolean
-    description: "Boolean that when set, will create airgap nodes rather regular cluster nodes."
-    default: false
   instance_type:
     type: string
     optional: false
     description: "What size ec2 instance to use for the nodes."
-  fqdn:
-    type: string
-    readOnly: true
-    description: "Public DNS A record that directs to the bastion node."
-  kube_api_host:
-    type: string
-    readOnly: true
-    description: "Public DNS A record that directs to the bastion node."
-  server_count:
+  node_count:
     type: integer
     optional: false
     description: "How many server nodes should be created."
-  agent_count:
-    type: integer
-    optional: false
-    description: "How many agent nodes should be created."
+  bastion_ip:
+    type: string
+    optional: true
+    description: "Public IP address of the bastion node"
 commands:
   - module: pools
   - command: "echo \"$CORRAL_corral_user_public_key\" >> /$(whoami)/.ssh/authorized_keys"
     node_pools:
       - bastion
-      - server
-      - agent
