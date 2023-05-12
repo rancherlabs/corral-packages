@@ -1,0 +1,17 @@
+manifest:
+  name: rancher-dynamic
+  description: rancher-dymamic
+  variables:
+    server_count:
+      default: 1
+    registry_auth:
+      default: disabled
+templates:
+  - aws/cluster_nodes
+  - rke2
+  - rancher
+variables:
+  cni:
+    - calico
+  cert_manager_version:
+    - 1.8.0
