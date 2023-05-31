@@ -29,7 +29,8 @@ data "cloudinit_config" "docker_service_config" {
   base64_encode = true
   part {
     content_type = "text/cloud-config"
-    content = file("${path.module}/cloud-init/setup-docker-service.yaml")
+    content = var.install_docker ? format("%s%s", file("${path.module}/cloud-init/install-docker.yaml"), file("${path.module}/cloud-init/setup-docker-service.yaml")) : file("${path.module}/cloud-init/setup-docker-service.yaml")
+
   }
 }
 
