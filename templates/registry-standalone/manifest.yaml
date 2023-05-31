@@ -40,6 +40,9 @@ variables:
   docker_compose_version:
     type: string
     description: "The docker compose version used for running the registry"
+  windows_registry:
+    type: string
+    description: "Flag to add windows images to the registry"
 commands:
   - command: /opt/corral/registry/registry-install.sh
     node_pools:
