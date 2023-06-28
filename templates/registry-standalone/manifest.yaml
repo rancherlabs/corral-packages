@@ -31,6 +31,25 @@ variables:
   registry_auth:
     type: string
     description: "Flag to build an auth enabled registry or no auth"
+  registry_ecr_fqdn:
+    type: string
+    description: "The ECR fqdn where the images are going to be pushed"
+  registry_ecr_clear_repo:
+    type: boolean
+    default: true
+    description: "Clear the ECR before pushing images"
+  registry_ecr_default_region:
+    type: string
+    default: "us-west-1"
+    description: "The AWS client default region"
+  aws_access_key:
+    sensitive: true
+    type: string
+    description: "aws API access key"
+  aws_secret_key:
+    sensitive: true
+    type: string
+    description: "aws API secret key"
   rancher_version:
     type: string
     description: "The rancher version to download the images for"
