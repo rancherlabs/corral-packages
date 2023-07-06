@@ -1,0 +1,13 @@
+manifest:
+  name: rancher-custom-cluster
+  description: rancher-custom-cluster
+  variables:
+    node_count:
+      default: 1
+templates:
+  - aws/nodes
+  - rancher-custom-cluster
+variables:
+  airgap_setup:
+    - true
+    - false

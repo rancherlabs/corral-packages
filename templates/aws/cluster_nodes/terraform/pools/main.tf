@@ -40,8 +40,8 @@ resource "aws_instance" "server" {
 
   ebs_block_device {
      device_name           = "/dev/sda1"
-     volume_size           = "200"
-     volume_type           = "gp3"
+     volume_size           = var.aws_volume_size
+     volume_type           = var.aws_volume_type
      encrypted             = true
      delete_on_termination = true
    }
@@ -85,8 +85,8 @@ resource "aws_instance" "agent" {
 
   ebs_block_device {
      device_name           = "/dev/sda1"
-     volume_size           = "200"
-     volume_type           = "gp3"
+     volume_size           = var.aws_volume_size
+     volume_type           = var.aws_volume_type
      encrypted             = true
      delete_on_termination = true
    }
@@ -133,6 +133,20 @@ resource "aws_lb_target_group_attachment" "aws_tg_attachment_443_server" {
   port             = 443
 }
 
+resource "aws_lb_target_group_attachment" "aws_tg_attachment_9345_server" {
+  count = var.server_count
+  target_group_arn = aws_lb_target_group.aws_tg_9345.arn
+  target_id        = aws_instance.server[count.index].id
+  port             = 9345
+}
+
+resource "aws_lb_target_group_attachment" "aws_tg_attachment_6443_server" {
+  count = var.server_count
+  target_group_arn = aws_lb_target_group.aws_tg_6443.arn
+  target_id        = aws_instance.server[count.index].id
+  port             = 6443
+}
+
 resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_80_server" {
   count = var.airgap_setup ? var.server_count : 0
   target_group_arn = aws_lb_target_group.aws_internal_tg_80[0].arn
@@ -147,18 +161,46 @@ resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_443_server
   port             = 443
 }
 
+resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_6443_server" {
+  count = var.airgap_setup ? var.server_count : 0
+  target_group_arn = aws_lb_target_group.aws_internal_tg_6443[0].arn
+  target_id        = aws_instance.server[count.index].id
+  port             = 6443
+}
+
+resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_9345_server" {
+  count = var.airgap_setup ? var.server_count : 0
+  target_group_arn = aws_lb_target_group.aws_internal_tg_9345[0].arn
+  target_id        = aws_instance.server[count.index].id
+  port             = 9345
+}
+
 resource "aws_lb_target_group_attachment" "aws_tg_attachment_80" {
-  count = var.agent_count
+  count = var.airgap_setup ? var.agent_count : 0
   target_group_arn = aws_lb_target_group.aws_tg_80.arn
   target_id        = aws_instance.agent[count.index].id
   port             = 80
 }
 
 resource "aws_lb_target_group_attachment" "aws_tg_attachment_443" {
-  count = var.agent_count
+  count = var.airgap_setup ? var.agent_count : 0
   target_group_arn = aws_lb_target_group.aws_tg_443.arn
   target_id        = aws_instance.agent[count.index].id
   port             = 443
+}
+
+resource "aws_lb_target_group_attachment" "aws_tg_attachment_6443" {
+  count = var.airgap_setup ? var.agent_count : 0
+  target_group_arn = aws_lb_target_group.aws_tg_6443.arn
+  target_id        = aws_instance.agent[count.index].id
+  port             = 6443
+}
+
+resource "aws_lb_target_group_attachment" "aws_tg_attachment_9345" {
+  count = var.airgap_setup ? var.agent_count : 0
+  target_group_arn = aws_lb_target_group.aws_tg_9345.arn
+  target_id        = aws_instance.agent[count.index].id
+  port             = 9345
 }
 
 resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_80" {
@@ -173,6 +215,20 @@ resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_443" {
   target_group_arn = aws_lb_target_group.aws_internal_tg_443[0].arn
   target_id        = aws_instance.agent[count.index].id
   port             = 443
+}
+
+resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_6443" {
+  count = var.airgap_setup ? var.agent_count : 0
+  target_group_arn = aws_lb_target_group.aws_internal_tg_6443[0].arn
+  target_id        = aws_instance.agent[count.index].id
+  port             = 6443
+}
+
+resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_9345" {
+  count = var.airgap_setup ? var.agent_count : 0
+  target_group_arn = aws_lb_target_group.aws_internal_tg_9345[0].arn
+  target_id        = aws_instance.agent[count.index].id
+  port             = 9345
 }
 
 resource "aws_lb" "aws_internal_nlb" {
@@ -224,6 +280,40 @@ resource "aws_lb_target_group" "aws_tg_443" {
   }
 }
 
+resource "aws_lb_target_group" "aws_tg_6443" {
+  port             = 6443
+  protocol         = "TCP"
+  vpc_id           = var.aws_vpc
+  name             = "${var.aws_hostname_prefix}-tg-6443"
+  health_check {
+        protocol = "HTTP"
+        port = 80
+        path = "/ping"
+        interval = 10
+        timeout = 6
+        healthy_threshold = 3
+        unhealthy_threshold = 3
+        matcher = "200-399"
+  }
+}
+
+resource "aws_lb_target_group" "aws_tg_9345" {
+  port             = 9345
+  protocol         = "TCP"
+  vpc_id           = var.aws_vpc
+  name             = "${var.aws_hostname_prefix}-tg-9345"
+  health_check {
+        protocol = "HTTP"
+        port = 80
+        path = "/ping"
+        interval = 10
+        timeout = 6
+        healthy_threshold = 3
+        unhealthy_threshold = 3
+        matcher = "200-399"
+  }
+}
+
 resource "aws_lb_target_group" "aws_internal_tg_80" {
   count = var.airgap_setup ? 1 : 0
   port             = 80
@@ -260,6 +350,42 @@ resource "aws_lb_target_group" "aws_internal_tg_443" {
   }
 }
 
+resource "aws_lb_target_group" "aws_internal_tg_6443" {
+  count = var.airgap_setup ? 1 : 0
+  port             = 6443
+  protocol         = "TCP"
+  vpc_id           = var.aws_vpc
+  name             = "${var.aws_hostname_prefix}-internal-tg-6443"
+  health_check {
+        protocol = "HTTP"
+        port = 80
+        path = "/ping"
+        interval = 10
+        timeout = 6
+        healthy_threshold = 3
+        unhealthy_threshold = 3
+        matcher = "200-399"
+  }
+}
+
+resource "aws_lb_target_group" "aws_internal_tg_9345" {
+  count = var.airgap_setup ? 1 : 0
+  port             = 9345
+  protocol         = "TCP"
+  vpc_id           = var.aws_vpc
+  name             = "${var.aws_hostname_prefix}-internal-tg-9345"
+  health_check {
+        protocol = "HTTP"
+        port = 80
+        path = "/ping"
+        interval = 10
+        timeout = 6
+        healthy_threshold = 3
+        unhealthy_threshold = 3
+        matcher = "200-399"
+  }
+}
+
 resource "aws_lb_listener" "aws_nlb_listener_80" {
   load_balancer_arn = aws_lb.aws_nlb.arn
   port              = "80"
@@ -277,6 +403,26 @@ resource "aws_lb_listener" "aws_nlb_listener_443" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.aws_tg_443.arn
+  }
+}
+
+resource "aws_lb_listener" "aws_nlb_listener_6443" {
+  load_balancer_arn = aws_lb.aws_nlb.arn
+  port              = "6443"
+  protocol          = "TCP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.aws_tg_6443.arn
+  }
+}
+
+resource "aws_lb_listener" "aws_nlb_listener_9345" {
+  load_balancer_arn = aws_lb.aws_nlb.arn
+  port              = "9345"
+  protocol          = "TCP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.aws_tg_9345.arn
   }
 }
 
@@ -299,6 +445,28 @@ resource "aws_lb_listener" "aws_internal_nlb_listener_443" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.aws_internal_tg_443[0].arn
+  }
+}
+
+resource "aws_lb_listener" "aws_internal_nlb_listener_6443" {
+  count = var.airgap_setup ? 1 : 0
+  load_balancer_arn = aws_lb.aws_internal_nlb[0].arn
+  port              = "6443"
+  protocol          = "TCP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.aws_internal_tg_6443[0].arn
+  }
+}
+
+resource "aws_lb_listener" "aws_internal_nlb_listener_9345" {
+  count = var.airgap_setup ? 1 : 0
+  load_balancer_arn = aws_lb.aws_internal_nlb[0].arn
+  port              = "9345"
+  protocol          = "TCP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.aws_internal_tg_9345[0].arn
   }
 }
 

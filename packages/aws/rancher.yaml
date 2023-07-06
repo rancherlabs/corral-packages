@@ -13,7 +13,9 @@ variables:
     - calico
   kubernetes_version:
     - v1.23.6+rke2r1
+    - v1.24.4+rke2r1
   rancher_version:
+    - 2.7.3
     - 2.6.7
     - 2.6.5
     - 2.6.4
