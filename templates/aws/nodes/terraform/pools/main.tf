@@ -37,7 +37,8 @@ resource "aws_instance" "node" {
      device_name           = "/dev/sda1"
      volume_size           = var.aws_volume_size
      volume_type           = var.aws_volume_type
-     encrypted             = true
+     encrypted             = var.aws_volume_encrypted
+     iops                  = var.aws_volume_iops
      delete_on_termination = true
    }
 

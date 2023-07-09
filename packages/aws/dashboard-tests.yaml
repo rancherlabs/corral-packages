@@ -1,0 +1,9 @@
+manifest:
+  name: dashboard-tests
+  description: Run the Ui test automation suite
+templates:
+  - aws/nodes
+  - dashboard-tests
+variables:
+  instance_type:
+    - t3a.xlarge
