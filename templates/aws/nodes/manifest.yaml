@@ -60,7 +60,7 @@ variables:
     type: integer
     optional: false
     description: "How many server nodes should be created."
-  bastion_ip:
+  registry_ip:
     type: string
     optional: true
     description: "Public IP address of the bastion node"
@@ -68,6 +68,10 @@ variables:
     type: boolean
     default: false
     description: "Boolean that when set, will create airgap nodes rather regular cluster nodes."
+  proxy_setup:
+    type: boolean
+    default: false
+    description: "Boolean that when set, will create proxied nodes rather regular cluster nodes."
 commands:
   - module: pools
   - command: "echo \"$CORRAL_corral_user_public_key\" >> /$(whoami)/.ssh/authorized_keys"

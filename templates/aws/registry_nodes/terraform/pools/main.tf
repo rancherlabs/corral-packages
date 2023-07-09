@@ -51,7 +51,7 @@ resource "aws_instance" "registry" {
   }
 
   provisioner "remote-exec" {
-    inline = var.airgap_setup ? [
+    inline = var.airgap_setup || var.proxy_setup ? [
       "sudo su <<EOF",
       "echo \"${var.corral_public_key} ${self.key_name}\" > /root/.ssh/authorized_keys",
       "echo \"${var.corral_private_key}\"",
@@ -73,7 +73,7 @@ resource "aws_instance" "registry" {
    }
 
   tags = {
-    Name  = "${var.corral_user_id}-${random_id.cluster_id.hex}-registry"
+    Name  = "${var.corral_user_id}-${random_id.cluster_id.hex}-${var.proxy_setup ? "proxy-bastion" : "registry"}"
   }
 }
 
