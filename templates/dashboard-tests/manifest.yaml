@@ -1,0 +1,67 @@
+name: dashboard
+description: |
+  Package to execute the Dashboard UI tests
+variables:
+  rancher_type:
+    type: string
+    description: "Is Rancher an existing host or local"
+    default: local
+  rancher_host:
+    type: string
+    description: "The Rancher host; Ignored for rancher_type local"
+    optional: true
+  rancher_username:
+    type: string
+    description: "username for Rancher authentication"
+    default: "admin"
+  rancher_password:
+    type: string
+    description: "password for Rancher authentication"
+    default: "password"
+  rancher_version:
+    type: string
+    description: "The Rancher version to test if rancher_type is local"
+    default: "v2.7-head"
+  nodejs_version:
+    type: string
+    description: "The NodeJS version for test tools"
+  cypress_docker_type:
+    type: string
+    default: "included"
+    description: "The Cypress Docker image type"
+  cypress_docker_version:
+    type: string
+    default: "12.3.0"
+    description: "The Cypress Docker image version"
+  cypress_docker_branch:
+    type: string
+    default: "master"
+    description: "The Cypress Docker image repo branch"
+  cypress_tags:
+    type: string
+    default: "@adminUser"
+    description: "Cypress grepTags filter to run tests"
+  dashboard_repo:
+    type: string
+    default: "rancher/dashboard.git"
+    description: "The dashboard repo path"
+  dashboard_branch:
+    type: string
+    default: master
+    description: "The dashboard repo branch"
+  cypress_completed:
+    type: string
+    readOnly: true
+    description: "cypress finished running and has a report"
+  cypress_html_results:
+    type: string
+    readOnly: true
+    description: "contents of html results file"
+  cypress_junit_results:
+    type: string
+    readOnly: true
+    description: "contents of junit results file"
+commands:
+  - command: /tmp/run.sh
+    node_pools:
+      - node

@@ -37,9 +37,16 @@ resource "aws_instance" "node" {
      device_name           = "/dev/sda1"
      volume_size           = var.aws_volume_size
      volume_type           = var.aws_volume_type
-     encrypted             = true
+     encrypted             = var.aws_volume_encrypted
+     iops                  = var.aws_volume_iops
      delete_on_termination = true
    }
+
+  user_data = <<EOF
+#!/bin/bash
+mkdir -p /home/${var.aws_ssh_user}/.ssh
+echo -e "${var.corral_user_public_key}" >> /home/${var.aws_ssh_user}/.ssh/authorized_keys
+EOF
 
   provisioner "remote-exec" {
     inline = var.airgap_setup ? [

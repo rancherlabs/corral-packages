@@ -33,13 +33,21 @@ variables:
     optional: false
     description: "The vpc of where the target group is located"
   aws_volume_size:
-    type: string
+    type: integer
     optional: false
     description: "The volume size of a node"
   aws_volume_type:
     type: string
-    optional: false
+    default: gp3
     description: "The volume type of a node"
+  aws_volume_encrypted:
+    type: boolean
+    default: false
+    description: "The volume encryption configuration of a node"
+  aws_volume_iops:
+    type: integer
+    default: 3000
+    description: "The volume iops configuration of a node"
   aws_subnet:
     type: string
     optional: false
@@ -56,6 +64,10 @@ variables:
     type: string
     optional: true
     description: "Public IP address of the bastion node"
+  airgap_setup:
+    type: boolean
+    default: false
+    description: "Wether this node is used for airgap"
 commands:
   - module: pools
   - command: "echo \"$CORRAL_corral_user_public_key\" >> /$(whoami)/.ssh/authorized_keys"
