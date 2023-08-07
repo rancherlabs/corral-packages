@@ -6,6 +6,7 @@ variables:
     description: "Specify rancher version to install. Defaults to latest stable version."
   rancher_image_tag:
     type: string
+    optional: true
     description: "Specify rancher image tag for the latest commit/version of rancher."
   bootstrap_password:
     readOnly: true

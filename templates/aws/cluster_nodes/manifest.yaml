@@ -75,7 +75,7 @@ variables:
     description: "How many server nodes should be created."
   agent_count:
     type: integer
-    optional: false
+    optional: true
     description: "How many agent nodes should be created."
 commands:
   - module: pools
