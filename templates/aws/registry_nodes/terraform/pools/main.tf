@@ -29,7 +29,8 @@ data "cloudinit_config" "docker_service_config" {
   base64_encode = true
   part {
     content_type = "text/cloud-config"
-    content = file("${path.module}/cloud-init/setup-docker-service.yaml")
+    content = var.install_docker ? format("%s%s", file("${path.module}/cloud-init/install-docker.yaml"), file("${path.module}/cloud-init/setup-docker-service.yaml")) : file("${path.module}/cloud-init/setup-docker-service.yaml")
+
   }
 }
 
@@ -52,9 +53,10 @@ resource "aws_instance" "registry" {
   provisioner "remote-exec" {
     inline = var.airgap_setup ? [
       "sudo su <<EOF",
-      "echo ${var.corral_public_key} ${self.key_name} > /root/.ssh/authorized_keys",
-      "echo \"${var.corral_private_key}\" > /root/.ssh/id_rsa",
-      "chmod 700 /root/.ssh/id_rsa",
+      "echo \"${var.corral_public_key} ${self.key_name}\" > /root/.ssh/authorized_keys",
+      "echo \"${var.corral_private_key}\"",
+      "echo \"${var.corral_private_key}\" > /root/.ssh/id_${var.corral_ssh_key_type}",
+      "chmod 700 /root/.ssh/id_${var.corral_ssh_key_type}",
       "EOF",
     ]: [
       "sudo su <<EOF",

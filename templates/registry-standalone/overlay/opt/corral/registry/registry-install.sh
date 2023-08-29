@@ -68,8 +68,23 @@ helm template ./cert-manager-"v${CORRAL_cert_manager_version}".tgz | awk '$1 ~ /
 sort -u rancher-images.txt -o rancher-images.txt
 
 corral_log "Saving images to host. Estimated time 1hr"
+if [ "enabled" = "$CORRAL_windows_registry" ]; then
+    corral_log "Adding Windows images to registry"
+    wget -O rancher-windows-images.txt "${DOWNLOAD_URL}v${CORRAL_rancher_version}"/rancher-windows-images.txt
+    sudo snap install go --classic
+    go install github.com/google/go-containerregistry/cmd/crane@latest
+    export PATH=$PATH:$(pwd)/go/bin/
+    export registry=$CORRAL_registry_fqdn
+    while IFS= read -r img; do set +e; $(pwd)/go/bin/crane copy $img $registry/$img --insecure --allow-nondistributable-artifacts; done < rancher-images.txt
+    while IFS= read -r img; do set +e; $(pwd)/go/bin/crane copy $img $registry/$img --insecure --allow-nondistributable-artifacts; done < rancher-windows-images.txt
+    set -e;
+else
+    corral_log "not adding windows images to this registry"
+    bash rancher-save-images.sh --image-list rancher-images.txt
 
-bash rancher-save-images.sh --image-list rancher-images.txt
+    corral_log "Loading images to registry. Estimated time 1hr"
+    bash rancher-load-images.sh --image-list rancher-images.txt --registry "$CORRAL_registry_fqdn"
+fi
 
 if [ "enabled" = "$CORRAL_registry_auth" ]; then
     corral_log "Login to the registry to load images"
@@ -78,9 +93,5 @@ if [ "enabled" = "$CORRAL_registry_auth" ]; then
 else
     corral_log "No login needed to load images"
 fi
-
-corral_log "Loading images to registry. Estimated time 1hr"
-
-bash rancher-load-images.sh --image-list rancher-images.txt --registry "$CORRAL_registry_fqdn"
 
 corral_log "Registry Host: $CORRAL_registry_fqdn"

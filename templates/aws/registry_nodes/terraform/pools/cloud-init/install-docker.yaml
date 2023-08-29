@@ -1,0 +1,8 @@
+#cloud-config
+packages:
+  - docker.io
+groups:
+  - docker
+system_info:
+  default_user:
+    groups: [docker]
