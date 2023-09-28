@@ -6,22 +6,17 @@ manifest:
       default: 1
 templates:
   - aws/cluster_nodes
-  - rke2
+  - k3s
   - rancher
 variables:
-  cni:
-    - calico
   kubernetes_version:
-    - v1.23.6+rke2r1
-    - v1.24.4+rke2r1
+    - v1.26.8+k3s1
+    - v1.25.13+k3s1
+    - v1.24.17+k3s1
+    - v1.23.16+k3s1
   rancher_version:
-    - 2.7.3
-    - 2.6.7
-    - 2.6.5
-    - 2.6.4
-    - 2.6.3
-    - 2.6.2
-    - 2.6.1
-    - 2.6.0
+    - 2.7.7
+    - 2.7.6
+    - 2.7.5
   cert_manager_version:
     - 1.8.0

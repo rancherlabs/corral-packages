@@ -1,0 +1,15 @@
+manifest:
+  name: k3s 
+  description: k3s 
+  variables:
+    server_count:
+      default: 1
+templates:
+  - aws/cluster_nodes
+  - k3s
+variables:
+  kubernetes_version:
+    - v1.26.8+k3s1
+    - v1.25.13+k3s1
+    - v1.24.17+k3s1
+    - v1.23.16+k3s1
