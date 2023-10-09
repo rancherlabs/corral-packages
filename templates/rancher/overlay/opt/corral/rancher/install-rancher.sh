@@ -1,29 +1,39 @@
 #!/bin/bash
 set -ex
 
-helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+repos=("latest" "alpha" "stable")
+if [[ ! ${repos[@]} =~ ${CORRAL_rancher_chart_repo} ]]; then
+  echo 'Error: `rancher_chart_repo` must be one of ["latest", "alpha", "stable"]'
+  exit 1
+fi
+
+helm repo add "rancher-${CORRAL_rancher_chart_repo}" "https://releases.rancher.com/server-charts/${CORRAL_rancher_chart_repo}"
 helm repo update
 
 CORRAL_rancher_host=${CORRAL_rancher_host:="${CORRAL_fqdn}"}
-CORRAL_rancher_version=${CORRAL_rancher_version:=$(helm search repo rancher-latest/rancher -o json | jq -r .[0].version)}
+CORRAL_rancher_version=${CORRAL_rancher_version:=$(helm search repo rancher-"${CORRAL_rancher_chart_repo}"/rancher -o json | jq -r .[0].version)}
 
 args=("--install" "--create-namespace")
 
 if [ -z "${CORRAL_registry_fqdn}" ]; then
-	args+=("--set hostname=${CORRAL_rancher_host}" "--version ${CORRAL_rancher_version}")
-	if [ "${CORRAL_rancher_image_tag}" ]; then
-		args+=("--set rancherImageTag=${CORRAL_rancher_image_tag}")
-	fi
+  args+=("--set hostname=${CORRAL_rancher_host}" "--version ${CORRAL_rancher_version}")
+  if [ "${CORRAL_rancher_image_tag}" ]; then
+    args+=("--set rancherImageTag=${CORRAL_rancher_image_tag}")
+  fi
 else
-	args+=("--set hostname=${CORRAL_rancher_host}" "--set rancherImage=${CORRAL_registry_fqdn}/rancher/rancher" "--set systemDefaultRegistry=${CORRAL_registry_fqdn}" "--version ${CORRAL_rancher_version}")
+  args+=("--set hostname=${CORRAL_rancher_host}" "--set rancherImage=${CORRAL_registry_fqdn}/rancher/rancher" "--set systemDefaultRegistry=${CORRAL_registry_fqdn}" "--version ${CORRAL_rancher_version}")
 fi
 
 if [ -n "${CORRAL_bootstrap_password}" ]; then
-		args+=("--set bootstrapPassword=${CORRAL_bootstrap_password}")
+  args+=("--set bootstrapPassword=${CORRAL_bootstrap_password}")
 fi
 
-args+=("--devel" "--wait" "-n cattle-system" "rancher rancher-latest/rancher")
-eval "helm upgrade ${args[@]}"
+if [ ! -z "${CORRAL_lets_encrypt_email}" ]; then
+  args+=("--set ingress.tls.source=letsEncrypt" "--set letsEncrypt.email=${CORRAL_lets_encrypt_email}" "--set letsEncrypt.ingress.class=nginx")
+fi
+
+args+=("--devel" "--wait" "-n cattle-system" "rancher rancher-${CORRAL_rancher_chart_repo}/rancher")
+helm upgrade "${args[@]}"
 
 echo "corral_set rancher_host=$CORRAL_rancher_host"
 echo "corral_set rancher_url=https://$CORRAL_rancher_host"
