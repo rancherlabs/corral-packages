@@ -47,7 +47,7 @@ resource "aws_instance" "server" {
    }
 
   provisioner "remote-exec" {
-    inline = var.airgap_setup ? [
+    inline = var.airgap_setup || var.rke_setup ? [
       "sudo su <<EOF",
       "echo \"${var.corral_public_key} ${self.key_name}\" > /root/.ssh/authorized_keys",
       "echo \"${var.corral_private_key}\"",
