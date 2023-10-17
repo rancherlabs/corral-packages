@@ -12,6 +12,7 @@ variables:
     - global
     - enabled
     - disabled
+    - ecr
   docker_compose_version:
     - 2.15.1
   rancher_version:
