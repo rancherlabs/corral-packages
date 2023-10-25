@@ -18,6 +18,10 @@ else
 	args+=("--set hostname=${CORRAL_rancher_host}" "--set rancherImage=${CORRAL_registry_fqdn}/rancher/rancher" "--set systemDefaultRegistry=${CORRAL_registry_fqdn}" "--version ${CORRAL_rancher_version}")
 fi
 
+if [ -n "${CORRAL_bootstrap_password}" ]; then
+		args+=("--set bootstrapPassword=${CORRAL_bootstrap_password}")
+fi
+
 args+=("--devel" "--wait" "-n cattle-system" "rancher rancher-latest/rancher")
 eval "helm upgrade ${args[@]}"
 

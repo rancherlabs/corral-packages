@@ -9,7 +9,6 @@ variables:
     optional: true
     description: "Specify rancher image tag for the latest commit/version of rancher."
   bootstrap_password:
-    readOnly: true
     type: string
     description: "Initial password for the rancher `admin` user."
   rancher_host:

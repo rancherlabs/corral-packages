@@ -6,6 +6,11 @@ if [[ $CORRAL_rancher_version == "2.5.*" ]]; then
   return 0
 fi
 
+if [ -n ${CORRAL_bootstrap_password} ]; then
+  echo "bootstrap_password=${CORRAL_bootstrap_password}"
+  exit 0
+fi
+
 echo "waiting for bootstrap password"
 until [ "$(kubectl -n cattle-system get secret/bootstrap-secret -o json --ignore-not-found=true | jq -r '.data.bootstrapPassword | length > 0')" == "true" ]; do
   sleep 0.1

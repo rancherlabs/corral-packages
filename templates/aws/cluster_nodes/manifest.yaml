@@ -42,7 +42,7 @@ variables:
     optional: false
     description: "The vpc of where the target group is located"
   aws_volume_size:
-    type: string
+    type: integer
     optional: false
     description: "The volume size of a node"
   aws_volume_type:
