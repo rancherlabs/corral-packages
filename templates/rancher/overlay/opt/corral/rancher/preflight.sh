@@ -15,3 +15,13 @@ mkdir ~/.kube
 
 echo $CORRAL_kubeconfig | base64 -d > ~/.kube/config
 chmod 400 ~/.kube/config
+
+RET=1
+COUNT=0
+
+until [ ${RET} -eq 0 ] && [ ${COUNT} -eq 2 ]; do
+	kubectl get nodes
+	RET=$?
+	sleep 5
+	COUNT=$((COUNT+1))
+done
