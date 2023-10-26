@@ -12,9 +12,6 @@ function corral_log() {
 
 WHOAMI=$(whoami)
 
-echo "PUBLIC KEY SSH on /home/${WHOAMI}/.ssh/authorized_keys"
-cat "/home/${WHOAMI}/.ssh/authorized_keys"
-
 NODEJS_VERSION="${NODEJS_VERSION:-$CORRAL_nodejs_version}"
 NODEJS_DOWNLOAD_URL="https://nodejs.org/dist"
 NODEJS_FILE="node-v${NODEJS_VERSION}-linux-x64.tar.xz"
@@ -30,41 +27,56 @@ GITHUB_URL="https://github.com/"
 VIEWPORT_WIDTH="1536"
 VIEWPORT_HEIGHT="960"
 
-git clone -b "${CORRAL_dashboard_branch}" \
-  "${GITHUB_URL}${CORRAL_dashboard_repo}" ${HOME}/dashboard
-
-if [ -f "${NODEJS_FILE}" ]; then rm -r "${NODEJS_FILE}"; fi
-curl -L --silent -o "${NODEJS_FILE}" \
-  "${NODEJS_DOWNLOAD_URL}/v${NODEJS_VERSION}/${NODEJS_FILE}"
-
-NODE_PATH="${HOME}/nodejs"
-mkdir -p ${NODE_PATH}
-tar -xJf "${NODEJS_FILE}" -C ${NODE_PATH}
-export PATH="${NODE_PATH}/node-v${NODEJS_VERSION}-linux-x64/bin:${PATH}"
-
-cd ${HOME}/dashboard
-echo "${PWD}"
-node -v
-npm version
-npm install -g yarn junit-report-merger mocha mochawesome mochawesome-merge mochawesome-report-generator
-cd ${HOME}
-
-echo "junit-report-merger version: "
-jrm --version
-echo "mochawesome-merge version: "
-marge --version
-
-DOCKERFILE_PATH="dashboard/cypress/jenkins"
-
-ENTRYPOINT_FILE_PATH="dashboard/cypress/jenkins"
-sed -i "s/CYPRESSTAGS/${CORRAL_cypress_tags}/g" ${ENTRYPOINT_FILE_PATH}/cypress.sh
-
-docker build -f "${DOCKERFILE_PATH}/Dockerfile.ci" --build-arg YARN_VERSION="${YARN_VERSION}" --build-arg NODE_VERSION="${NODEJS_VERSION}" --build-arg CYPRESS_VERSION="${CYPRESS_VERSION}" --build-arg CHROME_VERSION="${CHROME_VERSION}" -t dashboard-test .
-
-cd ${HOME}/dashboard
-sudo chown -R $(whoami) .
-echo "${PWD}"
 exit_code=0
+
+build_image () {
+    dashboard_branch=$1
+    git clone -b "${dashboard_branch}" \
+      "${GITHUB_URL}${CORRAL_dashboard_repo}" ${HOME}/dashboard
+
+    rm -rf ${HOME}/dashboard/cypress/jenkins
+    curl https://codeload.github.com/rancher/dashboard/tar.gz/master |  tar -xz --strip=2 dashboard-master/cypress/jenkins
+    mv ${HOME}/jenkins ${HOME}/dashboard/cypress/
+
+    if [ -f "${NODEJS_FILE}" ]; then rm -r "${NODEJS_FILE}"; fi
+    curl -L --silent -o "${NODEJS_FILE}" \
+      "${NODEJS_DOWNLOAD_URL}/v${NODEJS_VERSION}/${NODEJS_FILE}"
+
+    NODE_PATH="${HOME}/nodejs"
+    mkdir -p ${NODE_PATH}
+    tar -xJf "${NODEJS_FILE}" -C ${NODE_PATH}
+    export PATH="${NODE_PATH}/node-v${NODEJS_VERSION}-linux-x64/bin:${PATH}"
+
+    cd ${HOME}/dashboard
+    echo "${PWD}"
+    node -v
+    npm version
+    npm install -g yarn junit-report-merger mocha mochawesome mochawesome-merge mochawesome-report-generator
+    cd ${HOME}
+
+    echo "junit-report-merger version: "
+    jrm --version
+    echo "mochawesome-merge version: "
+    marge --version
+
+    DOCKERFILE_PATH="dashboard/cypress/jenkins"
+
+    ENTRYPOINT_FILE_PATH="dashboard/cypress/jenkins"
+    sed -i "s/CYPRESSTAGS/${CORRAL_cypress_tags}/g" ${ENTRYPOINT_FILE_PATH}/cypress.sh
+
+    docker build -f "${DOCKERFILE_PATH}/Dockerfile.ci" \
+      --build-arg YARN_VERSION="${YARN_VERSION}" \
+      --build-arg NODE_VERSION="${NODEJS_VERSION}" \
+      --build-arg CYPRESS_VERSION="${CYPRESS_VERSION}" \
+      --build-arg CHROME_VERSION="${CHROME_VERSION}" \
+      -t dashboard-test .
+
+    cd ${HOME}/dashboard
+    sudo chown -R $(whoami) .
+    echo "${PWD}"
+
+}
+
 rancher_init () {
   RANCHER_HOST=$1
   SERVER_URL="https://$2"
@@ -102,9 +114,16 @@ rancher_init () {
     -H "Authorization: Bearer ${rancher_token}" \
     -H 'Content-Type: application/json' \
     -d "{\"enabled\": true, \"mustChangePassword\": false, \"password\": \"${CORRAL_rancher_password}\", \"username\": \"standard_user\"}"
+
+  branch_from_rancher=`curl -s -k -X GET "https://${RANCHER_HOST}/dashboard/about" \
+    -H "Accept: text/html,application/xhtml+xml,application/xml" \
+    -H "Authorization: Bearer ${rancher_token}" | grep "release-" | sed -E 's/^\s*.*:\/\///g' | cut -d'/' -f 3 | tail -n 1`
+
 }
 
 if [ ${CORRAL_rancher_type} = "existing" ]; then
+
+    build_image ${CORRAL_dashboard_branch}
 
     TEST_BASE_URL="https://${CORRAL_rancher_host}/dashboard"
 
@@ -121,26 +140,35 @@ if [ ${CORRAL_rancher_type} = "existing" ]; then
 
     exit_code=$?
 elif  [ ${CORRAL_rancher_type} = "recurring" ]; then
-    TEST_USERNAME=admin
+    TEST_USERNAME="admin"
     rancher_init ${CORRAL_rancher_host} ${CORRAL_rancher_host} ${CORRAL_rancher_password}
+    build_image ${branch_from_rancher}
     TEST_BASE_URL="https://${CORRAL_rancher_host}/dashboard"
+
+    rancher_username="${CORRAL_rancher_username}"
+
+    case "${CORRAL_cypress_tags}" in
+        *"@standardUser"* )
+            rancher_username="standard_user"
+            ;;
+    esac
 
     docker run --name "${CORRAL_rancher_host}" -t \
       -e CYPRESS_VIDEO=false \
       -e CYPRESS_VIEWPORT_WIDTH="${VIEWPORT_WIDTH}" \
       -e CYPRESS_VIEWPORT_HEIGHT="${VIEWPORT_HEIGHT}" \
-      -e TEST_BASE_URL=${TEST_BASE_URL} \
-      -e TEST_USERNAME=${CORRAL_rancher_username} \
-      -e TEST_PASSWORD=${CORRAL_rancher_password} \
+      -e TEST_BASE_URL="${TEST_BASE_URL}" \
+      -e TEST_USERNAME="${rancher_username}" \
+      -e TEST_PASSWORD="${CORRAL_rancher_password}" \
       -e TEST_SKIP_SETUP=true \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
 
     exit_code=$?
 elif [ ${CORRAL_rancher_type} = "local" ]; then
+    build_image ${CORRAL_dashboard_branch}
 
     export PATH="${NODE_PATH}/node-v${NODEJS_VERSION}-linux-x64/bin:${PATH}"
-    # export TEST_INSTRUMENT=true
     ./scripts/build-e2e
 
     DIR="${HOME}/dashboard"
@@ -214,7 +242,7 @@ else
 fi
 
 DASHBOARD_PATH="${HOME}/dashboard"
-sudo chown -R $(whoami) .
+sudo chown -R "$(whoami)" .
 echo "${PWD}"
 find "${HOME}" -type f -iname "*.xml" -not -path "*node_modules*" -not -path "*golang*"
 find "${HOME}" -type f -iname "*mochawesome*" -not -path "*node_modules*"
