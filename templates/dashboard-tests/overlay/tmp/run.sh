@@ -121,17 +121,25 @@ if [ ${CORRAL_rancher_type} = "existing" ]; then
 
     exit_code=$?
 elif  [ ${CORRAL_rancher_type} = "recurring" ]; then
-    TEST_USERNAME=admin
+    TEST_USERNAME="admin"
     rancher_init ${CORRAL_rancher_host} ${CORRAL_rancher_host} ${CORRAL_rancher_password}
     TEST_BASE_URL="https://${CORRAL_rancher_host}/dashboard"
+
+    rancher_username="${CORRAL_rancher_username}"
+
+    case "${CORRAL_cypress_tags}" in
+        *"@standardUser"* )
+            rancher_username="standard_user"
+            ;;
+    esac
 
     docker run --name "${CORRAL_rancher_host}" -t \
       -e CYPRESS_VIDEO=false \
       -e CYPRESS_VIEWPORT_WIDTH="${VIEWPORT_WIDTH}" \
       -e CYPRESS_VIEWPORT_HEIGHT="${VIEWPORT_HEIGHT}" \
-      -e TEST_BASE_URL=${TEST_BASE_URL} \
-      -e TEST_USERNAME=${CORRAL_rancher_username} \
-      -e TEST_PASSWORD=${CORRAL_rancher_password} \
+      -e TEST_BASE_URL="${TEST_BASE_URL}" \
+      -e TEST_USERNAME="${rancher_username}" \
+      -e TEST_PASSWORD="${CORRAL_rancher_password}" \
       -e TEST_SKIP_SETUP=true \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
@@ -214,7 +222,7 @@ else
 fi
 
 DASHBOARD_PATH="${HOME}/dashboard"
-sudo chown -R $(whoami) .
+sudo chown -R "$(whoami)" .
 echo "${PWD}"
 find "${HOME}" -type f -iname "*.xml" -not -path "*node_modules*" -not -path "*golang*"
 find "${HOME}" -type f -iname "*mochawesome*" -not -path "*node_modules*"
