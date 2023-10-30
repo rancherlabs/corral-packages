@@ -6,7 +6,7 @@ if [[ $CORRAL_rancher_version == "2.5.*" ]]; then
   return 0
 fi
 
-if [ -n ${CORRAL_bootstrap_password} ]; then
+if [ ${CORRAL_bootstrap_password} -ne "" ]; then
   echo "bootstrap_password=${CORRAL_bootstrap_password}"
   exit 0
 fi
