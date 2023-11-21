@@ -167,6 +167,8 @@ elif  [ ${CORRAL_rancher_type} = "recurring" ]; then
       -e TEST_PASSWORD="${CORRAL_rancher_password}" \
       -e TEST_SKIP_SETUP=true \
       -e TEST_SKIP=setup \
+      -e AWS_ACCESS_KEY_ID=${CORRAL_aws_access_key} \
+      -e AWS_SECRET_ACCESS_KEY=${CORRAL_aws_secret_key} \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
 
