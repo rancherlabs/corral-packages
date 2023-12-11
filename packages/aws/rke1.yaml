@@ -1,0 +1,19 @@
+manifest:
+  name: rke1
+  description: rke1
+  variables:
+    server_count:
+      default: 1
+templates:
+  - aws/cluster_nodes
+  - rke1
+variables:
+  rke_setup:
+    - true
+  cni:
+    - calico
+  kubernetes_version:
+    - v1.26.8-rancher1-1
+    - v1.25.13-rancher1-1
+    - v1.24.17-rancher1-1
+    - v1.23.16-rancher2-3

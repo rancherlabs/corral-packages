@@ -1,0 +1,17 @@
+
+name: rke1
+description: >
+  An RKE1 cluster.
+variables:
+  cni:
+    type: string
+  kubernetes_version:
+    type: string
+  kubeconfig:
+    type: string
+    readOnly: true
+    description: "Kubeconfig for the cluster encoded as a base64 string."
+commands:
+  - command: "/opt/corral/rke1/init-cluster.sh"
+    node_pools:
+      - bastion
