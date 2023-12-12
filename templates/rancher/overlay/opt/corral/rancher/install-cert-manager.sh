@@ -11,7 +11,7 @@ if [ -z "${CORRAL_registry_fqdn}" ]; then
 		--create-namespace \
 		-n cert-manager \
 		--set installCRDs=true \
-		--version v${CORRAL_cert_manager_version} \
+		--version "v${CORRAL_cert_manager_version}" \
 		--wait \
 		cert-manager jetstack/cert-manager
 

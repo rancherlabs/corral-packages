@@ -20,9 +20,18 @@ variables:
     readOnly: true
     type: string
     description: "Host of newly created rancher instance."
+  rancher_chart_repo:
+    readOnly: true
+    type: string
+    default: "latest"
+    description: "Name of Helm chart to use for Rancher install. Example: latest"
   cert_manager_version:
     type: string
     description: "The cert-manager version for HA rancher install"
+  lets_encrypt_email:
+    type: string
+    optional: true
+    description: "The email to use if Let'sEncrypt certs should be provisioned"
   registry_fqdn:
     type: string
     optional: true
