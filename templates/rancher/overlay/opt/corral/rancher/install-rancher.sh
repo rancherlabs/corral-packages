@@ -33,7 +33,7 @@ if [ ! -z "${CORRAL_lets_encrypt_email}" ]; then
 fi
 
 args+=("--devel" "--wait" "-n cattle-system" "rancher rancher-${CORRAL_rancher_chart_repo}/rancher")
-helm upgrade "${args[@]}"
+eval "helm upgrade ${args[*]}"
 
 echo "corral_set rancher_host=$CORRAL_rancher_host"
 echo "corral_set rancher_url=https://$CORRAL_rancher_host"
