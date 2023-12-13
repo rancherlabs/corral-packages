@@ -1,0 +1,14 @@
+
+manifest:
+  name: rancher
+  description: rancher
+  variables:
+    server_count:
+      default: 1
+templates:
+  - aws/cluster_nodes
+  - k3s
+  - rancher
+variables:
+  cert_manager_version:
+    - 1.8.0
