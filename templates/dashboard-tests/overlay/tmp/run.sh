@@ -118,7 +118,11 @@ rancher_init () {
   branch_from_rancher=`curl -s -k -X GET "https://${RANCHER_HOST}/dashboard/about" \
     -H "Accept: text/html,application/xhtml+xml,application/xml" \
     -H "Authorization: Bearer ${rancher_token}" | grep "release-" | sed -E 's/^\s*.*:\/\///g' | cut -d'/' -f 3 | tail -n 1`
-
+  
+  if [[ -z "${branch_from_rancher}" ]]; then
+    echo "Error: The dashboard branch returned empty"
+    exit 1
+  fi
 }
 
 if [ ${CORRAL_rancher_type} = "existing" ]; then
@@ -133,8 +137,9 @@ if [ ${CORRAL_rancher_type} = "existing" ]; then
       -e CYPRESS_VIEWPORT_HEIGHT="${VIEWPORT_HEIGHT}" \
       -e TEST_BASE_URL=${TEST_BASE_URL} \
       -e TEST_USERNAME=${CORRAL_rancher_username} \
-      -e TEST_PASSWORD=${CORRAL_rancher_password} \
+      -e TEST_PASSWORD="${CORRAL_rancher_password}" \
       -e TEST_SKIP_SETUP=true \
+      -e TEST_SKIP=setup \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
 
@@ -161,6 +166,7 @@ elif  [ ${CORRAL_rancher_type} = "recurring" ]; then
       -e TEST_USERNAME="${rancher_username}" \
       -e TEST_PASSWORD="${CORRAL_rancher_password}" \
       -e TEST_SKIP_SETUP=true \
+      -e TEST_SKIP=setup \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
 
@@ -230,6 +236,7 @@ elif [ ${CORRAL_rancher_type} = "local" ]; then
       -e TEST_USERNAME=${TEST_USERNAME} \
       -e TEST_PASSWORD=${TEST_PASSWORD} \
       -e TEST_SKIP_SETUP=true \
+      -e TEST_SKIP=setup \
       -e CATTLE_BOOTSTRAP_PASSWORD=${TEST_PASSWORD} \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
