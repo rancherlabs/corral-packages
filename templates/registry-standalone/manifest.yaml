@@ -34,6 +34,7 @@ variables:
   registry_ecr_fqdn:
     type: string
     description: "The ECR fqdn where the images are going to be pushed"
+    optional: true
   registry_ecr_clear_repo:
     type: boolean
     default: true
