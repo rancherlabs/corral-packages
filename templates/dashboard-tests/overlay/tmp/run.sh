@@ -34,9 +34,11 @@ build_image () {
     git clone -b "${dashboard_branch}" \
       "${GITHUB_URL}${CORRAL_dashboard_repo}" ${HOME}/dashboard
 
-    rm -rf ${HOME}/dashboard/cypress/jenkins
-    curl https://codeload.github.com/rancher/dashboard/tar.gz/master |  tar -xz --strip=2 dashboard-master/cypress/jenkins
-    mv ${HOME}/jenkins ${HOME}/dashboard/cypress/
+    if [[ "${dashboard_branch}" != "master" ]]; then
+      rm -rf ${HOME}/dashboard/cypress/jenkins
+      curl https://codeload.github.com/rancher/dashboard/tar.gz/master |  tar -xz --strip=2 dashboard-master/cypress/jenkins
+      mv ${HOME}/jenkins ${HOME}/dashboard/cypress/
+    fi
 
     if [ -f "${NODEJS_FILE}" ]; then rm -r "${NODEJS_FILE}"; fi
     curl -L --silent -o "${NODEJS_FILE}" \
@@ -120,8 +122,15 @@ rancher_init () {
     -H "Authorization: Bearer ${rancher_token}" | grep "release-" | sed -E 's/^\s*.*:\/\///g' | cut -d'/' -f 3 | tail -n 1`
   
   if [[ -z "${branch_from_rancher}" ]]; then
-    echo "Error: The dashboard branch returned empty"
-    exit 1
+    is_it_latest=`curl -s -k -X GET "https://${RANCHER_HOST}/dashboard/about" \
+    -H "Accept: text/html,application/xhtml+xml,application/xml" \
+    -H "Authorization: Bearer ${rancher_token}" | grep -q "dashboard/latest/"`
+    if [[ ${is_it_latest} -eq 1 ]]; then
+      echo "Error: The dashboard branch returned empty"
+      exit 1
+    else
+      branch_from_rancher="master"
+    fi
   fi
 }
 
