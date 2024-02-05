@@ -4,6 +4,10 @@ variables:
   rancher_version:
     type: string
     description: "Specify rancher version to install. Defaults to latest stable version."
+  rancher_image:
+    type: string
+    optional: true
+    description: "Specify rancher image for rancher image in a separate docker hub/registry"
   rancher_image_tag:
     type: string
     optional: true
