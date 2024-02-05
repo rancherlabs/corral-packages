@@ -17,6 +17,9 @@ args=("--install" "--create-namespace")
 
 if [ -z "${CORRAL_registry_fqdn}" ]; then
   args+=("--set hostname=${CORRAL_rancher_host}" "--version ${CORRAL_rancher_version}")
+  if [ "${CORRAL_rancher_image}" ]; then
+    args+=("--set rancherImage=${CORRAL_rancher_image}")
+  fi
   if [ "${CORRAL_rancher_image_tag}" ]; then
     args+=("--set rancherImageTag=${CORRAL_rancher_image_tag}")
   fi
