@@ -112,11 +112,26 @@ rancher_init () {
     --data-binary "{\"name\": \"server-url\", \"value\":\"${SERVER_URL}\"}"
   
   # Add standard user
-  curl -s -k -X POST "https://${RANCHER_HOST}/v3/users" \
+  user_id=$(curl -s -k -X POST "https://${RANCHER_HOST}/v3/users" \
     -H "Authorization: Bearer ${rancher_token}" \
     -H 'Content-Type: application/json' \
-    -d "{\"enabled\": true, \"mustChangePassword\": false, \"password\": \"${CORRAL_rancher_password}\", \"username\": \"standard_user\"}"
+    -d "{\"enabled\": true, \"mustChangePassword\": false, \"password\": \"${CORRAL_rancher_password}\", \"username\": \"standard_user\"}" | grep -o '"id":"[^"]*' | grep -o '[^"]*$')
 
+  curl -s -k -X POST "https://${RANCHER_HOST}/v3/globalrolebindings" \
+    -H "Authorization: Bearer ${rancher_token}" \
+    -H 'Content-Type: application/json' \
+    -d "{\"globalRoleId\": \"user\", \"type\": \"globalRoleBinding\", \"userId\": \"${user_id}\"}"
+
+  project_id=$(curl -s -k "https://${RANCHER_HOST}/v3/projects?name=Default&clusterId=local" \
+    -H "Authorization: Bearer ${rancher_token}" \
+    -H 'Content-Type: application/json' | grep -o '"id":"[^"]*' | grep -o '[^"]*$')
+
+  curl -s -k -X POST "https://${RANCHER_HOST}/v3/projectroletemplatebindings" \
+    -H "Authorization: Bearer ${rancher_token}" \
+    -H 'Content-Type: application/json' \
+    -d "{\"type\": \"projectroletemplatebinding\", \"roleTemplateId\": \"project-member\", \"projectId\": \"${project_id}\", \"userId\": \"${user_id}\"}"  
+
+  # Retrieving the dashboard branch used by the Rancher server
   branch_from_rancher=`curl -s -k -X GET "https://${RANCHER_HOST}/dashboard/about" \
     -H "Accept: text/html,application/xhtml+xml,application/xml" \
     -H "Authorization: Bearer ${rancher_token}" | grep "release-" | sed -E 's/^\s*.*:\/\///g' | cut -d'/' -f 3 | tail -n 1`
