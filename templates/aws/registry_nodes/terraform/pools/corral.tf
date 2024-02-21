@@ -7,10 +7,7 @@ variable "corral_ssh_key_type" {
 } // The corrals ssh key type (rsa, ed25519, etc.)
 variable "aws_access_key" {}
 variable "aws_secret_key" {}
-variable "aws_session_token" {
-  type    = string
-  default = ""
-}
+variable "aws_session_token" {}
 variable "aws_region" {}
 variable "aws_ami" {}
 variable "aws_route53_zone" {}
