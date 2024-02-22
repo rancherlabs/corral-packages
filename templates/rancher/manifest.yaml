@@ -25,10 +25,13 @@ variables:
     type: string
     description: "Host of newly created rancher instance."
   rancher_chart_repo:
-    readOnly: true
     type: string
     default: "latest"
     description: "Name of Helm chart to use for Rancher install. Example: latest"
+  rancher_chart_url:
+    type: string
+    default: "https://releases.rancher.com/server-charts"
+    description: "URL of Helm chart to use for Rancher install. Example: https://releases.rancher.com/server-charts"
   cert_manager_version:
     type: string
     description: "The cert-manager version for HA rancher install"

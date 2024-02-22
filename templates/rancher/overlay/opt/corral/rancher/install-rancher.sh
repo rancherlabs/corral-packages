@@ -7,7 +7,7 @@ if [[ ! ${repos[*]} =~ ${CORRAL_rancher_chart_repo} ]]; then
   exit 1
 fi
 
-helm repo add "rancher-${CORRAL_rancher_chart_repo}" "https://releases.rancher.com/server-charts/${CORRAL_rancher_chart_repo}"
+helm repo add "rancher-${CORRAL_rancher_chart_repo}" "${CORRAL_rancher_chart_url}/${CORRAL_rancher_chart_repo}"
 helm repo update
 
 CORRAL_rancher_host=${CORRAL_rancher_host:="${CORRAL_fqdn}"}
