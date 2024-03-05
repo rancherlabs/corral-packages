@@ -166,6 +166,9 @@ if [ ${CORRAL_rancher_type} = "existing" ]; then
       -e TEST_SKIP=setup \
       -e AWS_ACCESS_KEY_ID=${CORRAL_aws_access_key} \
       -e AWS_SECRET_ACCESS_KEY=${CORRAL_aws_secret_key} \
+      -e AZURE_CLIENT_ID=${CORRAL_azure_client_id} \
+      -e AZURE_CLIENT_SECRET=${CORRAL_azure_client_secret} \
+      -e AZURE_AKS_SUBSCRIPTION_ID=${CORRAL_azure_subscription_id} \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
 
@@ -195,6 +198,9 @@ elif  [ ${CORRAL_rancher_type} = "recurring" ]; then
       -e TEST_SKIP=setup \
       -e AWS_ACCESS_KEY_ID=${CORRAL_aws_access_key} \
       -e AWS_SECRET_ACCESS_KEY=${CORRAL_aws_secret_key} \
+      -e AZURE_CLIENT_ID=${CORRAL_azure_client_id} \
+      -e AZURE_CLIENT_SECRET=${CORRAL_azure_client_secret} \
+      -e AZURE_AKS_SUBSCRIPTION_ID=${CORRAL_azure_subscription_id} \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
 
