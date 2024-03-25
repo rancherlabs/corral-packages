@@ -1,7 +1,11 @@
 #!/bin/bash
 set -ex
 
-DOWNLOAD_URL="https://github.com/rancher/rancher/releases/download/"
+if [ -z $CORRAL_download_url ]; then
+	DOWNLOAD_URL="https://github.com/rancher/rancher/releases/download/"
+else
+	DOWNLOAD_URL="$CORRAL_download_url"
+fi
 
 function corral_set() {
 	echo "corral_set $1=$2"
@@ -133,11 +137,48 @@ else
 	if [ "enabled" = "$CORRAL_windows_registry" ]; then
 		corral_log "Adding Windows images to registry"
 		wget -O rancher-windows-images.txt "${DOWNLOAD_URL}v${CORRAL_rancher_version}"/rancher-windows-images.txt
+
+		source /etc/os-release
+
+		if [[ $NAME == *"SUSE"* || $NAME == *"SLES"* ]]; then
+			sudo zypper addrepo --refresh https://download.opensuse.org/repositories/system:/snappy/openSUSE_Leap_$VERSION_ID snappy
+			sudo zypper --gpg-auto-import-keys refresh
+			sudo zypper dup --from snappy
+			sudo zypper install snapd
+			source /etc/profile
+			sudo systemctl enable --now snapd
+			sudo systemctl enable --now snapd.apparmor
+			sudo snap install snap-store
+
+		elif [[ $NAME == *"Red Hat"* ]]; then
+			if [[ $VERSION_ID == *"7."* ]]; then
+				sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+			else
+				sudo dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${VERSION_ID:0:1}.noarch.rpm
+				sudo dnf -y upgrade
+			fi
+			sudo subscription-manager repos --enable "rhel-*-optional-rpms" --enable "rhel-*-extras-rpms"
+			sudo yum -y update
+			sudo yum -y install snapd
+			sudo systemctl enable --now snapd.socket
+			sudo ln -s /var/lib/snapd/snap /snap
+
+
+			sleep 10
+			source ~/.bashrc
+			sudo snap install snapd
+
+		else
+			# assuming using an OS with snap already installed. i.e. Ubuntu
+			sudo snap refresh
+		fi
+
 		sudo snap install go --classic
 		go install github.com/google/go-containerregistry/cmd/crane@latest
 		export PATH=$PATH:$(pwd)/go/bin/
 		export registry=$CORRAL_registry_fqdn
 		while IFS= read -r img; do set +e; $(pwd)/go/bin/crane copy $img $registry/$img --insecure --allow-nondistributable-artifacts; done < rancher-images.txt
+		while IFS= read -r img; do set +e; $(pwd)/go/bin/crane copy $img-windows-amd64 $registry/$img-windows-amd64 --insecure --allow-nondistributable-artifacts; done < rancher-images.txt
 		while IFS= read -r img; do set +e; $(pwd)/go/bin/crane copy $img $registry/$img --insecure --allow-nondistributable-artifacts; done < rancher-windows-images.txt
 		set -e;
 	else
@@ -154,6 +195,17 @@ else
 
 		corral_log "Loading images to the registry. Estimated time 1hr"
 		bash rancher-load-images.sh --image-list rancher-images.txt --registry "$CORRAL_registry_fqdn"
+	fi
+
+	if [ -z $CORRAL_suse_registry ]; then
+		echo "No suse registry defined; expecting rancher/rancher image to exist in registry"
+	else
+		docker pull "${CORRAL_suse_registry}/rancher/rancher:v${CORRAL_rancher_version}"
+		docker tag "${CORRAL_suse_registry}/rancher/rancher:v${CORRAL_rancher_version}" "${CORRAL_registry_fqdn}/rancher/rancher:v${CORRAL_rancher_version}"
+		docker push "${CORRAL_registry_fqdn}/rancher/rancher:v${CORRAL_rancher_version}"
+		docker pull "${CORRAL_suse_registry}/rancher/rancher-agent:v${CORRAL_rancher_version}"
+		docker tag "${CORRAL_suse_registry}/rancher/rancher-agent:v${CORRAL_rancher_version}" "${CORRAL_registry_fqdn}/rancher/rancher-agent:v${CORRAL_rancher_version}"
+		docker push "${CORRAL_registry_fqdn}/rancher/rancher-agent:v${CORRAL_rancher_version}"
 	fi
 fi
 
