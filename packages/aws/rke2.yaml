@@ -11,4 +11,4 @@ variables:
   cni:
     - calico
   kubernetes_version:
-    - v1.23.6+rke2r1
+    - v1.26.14+rke2r1
