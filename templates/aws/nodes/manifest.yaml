@@ -12,6 +12,11 @@ variables:
     type: string
     optional: false
     description: "aws API secret key"
+ aws_session_token:
+    sensitive: true
+    type: string
+    optional: true
+    description: "aws API session token"
   aws_region:
     type: string
     optional: false
