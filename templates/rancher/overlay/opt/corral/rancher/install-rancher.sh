@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-repos=("latest" "alpha" "stable")
+repos=("latest" "alpha" "stable" "prime")
 if [[ ! ${repos[*]} =~ ${CORRAL_rancher_chart_repo} ]]; then
   echo 'Error: `rancher_chart_repo` must be one of ["latest", "alpha", "stable"]'
   exit 1
