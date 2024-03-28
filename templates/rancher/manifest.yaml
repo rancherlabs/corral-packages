@@ -43,6 +43,10 @@ variables:
     type: string
     optional: true
     description: "The registry fqdn"
+  env_var_map:
+    type: array
+    optional: true
+    description: "The enviornment variables set in rancher. In the format of "key|value""
 commands:
   - command: /opt/corral/rancher/preflight.sh
     node_pools:
