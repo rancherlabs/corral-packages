@@ -18,6 +18,7 @@ NODEJS_FILE="node-v${NODEJS_VERSION}-linux-x64.tar.xz"
 YARN_VERSION="${YARN_VERSION:-$CORRAL_yarn_version}"
 CYPRESS_VERSION="${CYPRESS_VERSION:-$CORRAL_cypress_version}"
 CHROME_VERSION="${CHROME_VERSION:-$CORRAL_chrome_version}"
+KUBECTL_VERSION="${KUBECTL_VERSION:-$CORRAL_kubectl_version}"
 NODE_PATH="${PWD}/nodejs"
 CYPRESS_CONTAINER_NAME="${CYPRESS_CONTAINER_NAME:-cye2e}"
 RANCHER_CONTAINER_NAME="${RANCHER_CONTAINER_NAME:-rancher}"
@@ -33,6 +34,8 @@ build_image () {
     dashboard_branch=$1
     git clone -b "${dashboard_branch}" \
       "${GITHUB_URL}${CORRAL_dashboard_repo}" ${HOME}/dashboard
+    echo $CORRAL_imported_kubeconfig | base64 -d > ${HOME}/dashboard/imported_config
+    cat ${HOME}/dashboard/imported_config
 
     if [[ "${dashboard_branch}" != "master" ]]; then
       rm -rf ${HOME}/dashboard/cypress/jenkins
@@ -71,6 +74,7 @@ build_image () {
       --build-arg NODE_VERSION="${NODEJS_VERSION}" \
       --build-arg CYPRESS_VERSION="${CYPRESS_VERSION}" \
       --build-arg CHROME_VERSION="${CHROME_VERSION}" \
+      --build-arg KUBECTL_VERSION="${KUBECTL_VERSION}" \
       -t dashboard-test .
 
     cd ${HOME}/dashboard

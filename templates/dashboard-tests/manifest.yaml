@@ -25,6 +25,9 @@ variables:
   nodejs_version:
     type: string
     description: "The NodeJS version for test tools"
+  kubectl_version:
+    type: string
+    description: "kubectl version to include in the dashboard tests image"
   cypress_docker_type:
     type: string
     default: "included"
