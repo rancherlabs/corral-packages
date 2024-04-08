@@ -159,6 +159,8 @@ if [ ${CORRAL_rancher_type} = "existing" ]; then
 
     TEST_BASE_URL="https://${CORRAL_rancher_host}/dashboard"
 
+    echo "Custom key: $CORRAL_custom_node_key"
+
     docker run --name "${CORRAL_rancher_host}" -t \
       -e CYPRESS_VIDEO=false \
       -e CYPRESS_VIEWPORT_WIDTH="${VIEWPORT_WIDTH}" \
@@ -173,6 +175,8 @@ if [ ${CORRAL_rancher_type} = "existing" ]; then
       -e AZURE_CLIENT_ID=${CORRAL_azure_client_id} \
       -e AZURE_CLIENT_SECRET=${CORRAL_azure_client_secret} \
       -e AZURE_AKS_SUBSCRIPTION_ID=${CORRAL_azure_subscription_id} \
+      -e CUSTOM_NODE_IP="${CORRAL_custom_node_ip}" \
+      -e CUSTOM_NODE_KEY="${CORRAL_custom_node_key}" \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
 
@@ -205,6 +209,8 @@ elif  [ ${CORRAL_rancher_type} = "recurring" ]; then
       -e AZURE_CLIENT_ID=${CORRAL_azure_client_id} \
       -e AZURE_CLIENT_SECRET=${CORRAL_azure_client_secret} \
       -e AZURE_AKS_SUBSCRIPTION_ID=${CORRAL_azure_subscription_id} \
+      -e CUSTOM_NODE_IP="${CORRAL_custom_node_ip}" \
+      -e CUSTOM_NODE_KEY="${CORRAL_custom_node_key}" \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
 
