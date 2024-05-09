@@ -17,3 +17,4 @@ variable "aws_subnet" {}
 variable "install_docker" {}
 variable "instance_type" {}
 variable "airgap_setup" {}
+variable "proxy_setup" {}
