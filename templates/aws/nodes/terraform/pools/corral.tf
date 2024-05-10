@@ -19,6 +19,4 @@ variable "aws_subnet" {}
 variable "instance_type" {}
 variable "node_count" {}
 variable "airgap_setup" {}
-variable "registry_ip" {}
-variable "registry_private_ip" {}
-variable "proxy_setup" {}
+variable "bastion_ip" {}

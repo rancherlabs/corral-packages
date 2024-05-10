@@ -23,4 +23,3 @@ variable "server_count" {}
 variable "agent_count" {}
 variable "airgap_setup" {}
 variable "rke_setup" {}
-variable "proxy_setup" {}

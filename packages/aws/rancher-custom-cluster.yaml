@@ -9,8 +9,5 @@ templates:
   - rancher-custom-cluster
 variables:
   airgap_setup:
-    - false
     - true
-  proxy_setup:
     - false
-    - true
