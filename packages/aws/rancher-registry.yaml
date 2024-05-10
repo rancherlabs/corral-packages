@@ -21,7 +21,7 @@ variables:
     - enabled
     - disabled
   docker_compose_version:
-    - 2.15.1
+    - 2.18.1
   rancher_version:
     - 2.7.10
     - 2.8.2
