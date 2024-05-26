@@ -14,4 +14,4 @@ variables:
   cni:
     - calico
   cert_manager_version:
-    - 1.8.0
+    - 1.11.0

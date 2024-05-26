@@ -1,13 +1,13 @@
 #!/bin/bash
 set -ex
 
-repos=("latest" "alpha" "stable")
+repos=("latest" "alpha" "stable" "prime")
 if [[ ! ${repos[*]} =~ ${CORRAL_rancher_chart_repo} ]]; then
   echo 'Error: `rancher_chart_repo` must be one of ["latest", "alpha", "stable"]'
   exit 1
 fi
 
-helm repo add "rancher-${CORRAL_rancher_chart_repo}" "https://releases.rancher.com/server-charts/${CORRAL_rancher_chart_repo}"
+helm repo add "rancher-${CORRAL_rancher_chart_repo}" "${CORRAL_rancher_chart_url}/${CORRAL_rancher_chart_repo}"
 helm repo update
 
 CORRAL_rancher_host=${CORRAL_rancher_host:="${CORRAL_fqdn}"}
@@ -17,8 +17,23 @@ args=("--install" "--create-namespace")
 
 if [ -z "${CORRAL_registry_fqdn}" ]; then
   args+=("--set hostname=${CORRAL_rancher_host}" "--version ${CORRAL_rancher_version}")
+  if [ "${CORRAL_rancher_image}" ]; then
+    args+=("--set rancherImage=${CORRAL_rancher_image}")
+  fi
   if [ "${CORRAL_rancher_image_tag}" ]; then
     args+=("--set rancherImageTag=${CORRAL_rancher_image_tag}")
+  fi
+  if [ "${CORRAL_env_var_map}" ]; then
+    STRIPPED=$(echo ${CORRAL_env_var_map} | tr -d '[]' | tr -d '"')
+    COUNT=0
+    IFS=' ' read -ra NEWARRAY <<< "$STRIPPED"
+    for i in "${NEWARRAY[@]}"; do
+        IFS='|' read -ra ADDR <<< "$i"
+        echo "key is ${ADDR[0]}"
+        echo "value is ${ADDR[1]}"
+        args+=("--set extraEnv[${COUNT}].name=${ADDR[0]} --set extraEnv[${COUNT}].value=${ADDR[1]}")
+        COUNT=$((COUNT+1))
+    done
   fi
 else
   args+=("--set hostname=${CORRAL_rancher_host}" "--set rancherImage=${CORRAL_registry_fqdn}/rancher/rancher" "--set systemDefaultRegistry=${CORRAL_registry_fqdn}" "--version ${CORRAL_rancher_version}")

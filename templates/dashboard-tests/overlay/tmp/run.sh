@@ -18,14 +18,15 @@ NODEJS_FILE="node-v${NODEJS_VERSION}-linux-x64.tar.xz"
 YARN_VERSION="${YARN_VERSION:-$CORRAL_yarn_version}"
 CYPRESS_VERSION="${CYPRESS_VERSION:-$CORRAL_cypress_version}"
 CHROME_VERSION="${CHROME_VERSION:-$CORRAL_chrome_version}"
+KUBECTL_VERSION="${KUBECTL_VERSION:-$CORRAL_kubectl_version}"
 NODE_PATH="${PWD}/nodejs"
 CYPRESS_CONTAINER_NAME="${CYPRESS_CONTAINER_NAME:-cye2e}"
 RANCHER_CONTAINER_NAME="${RANCHER_CONTAINER_NAME:-rancher}"
 GITHUB_URL="https://github.com/"
 
 #viewPort macbook-16
-VIEWPORT_WIDTH="1536"
-VIEWPORT_HEIGHT="960"
+VIEWPORT_WIDTH="1000"
+VIEWPORT_HEIGHT="660"
 
 exit_code=0
 
@@ -33,6 +34,8 @@ build_image () {
     dashboard_branch=$1
     git clone -b "${dashboard_branch}" \
       "${GITHUB_URL}${CORRAL_dashboard_repo}" ${HOME}/dashboard
+    echo $CORRAL_imported_kubeconfig | base64 -d > ${HOME}/dashboard/imported_config
+    cat ${HOME}/dashboard/imported_config
 
     if [[ "${dashboard_branch}" != "master" ]]; then
       rm -rf ${HOME}/dashboard/cypress/jenkins
@@ -71,6 +74,7 @@ build_image () {
       --build-arg NODE_VERSION="${NODEJS_VERSION}" \
       --build-arg CYPRESS_VERSION="${CYPRESS_VERSION}" \
       --build-arg CHROME_VERSION="${CHROME_VERSION}" \
+      --build-arg KUBECTL_VERSION="${KUBECTL_VERSION}" \
       -t dashboard-test .
 
     cd ${HOME}/dashboard
@@ -112,11 +116,26 @@ rancher_init () {
     --data-binary "{\"name\": \"server-url\", \"value\":\"${SERVER_URL}\"}"
   
   # Add standard user
-  curl -s -k -X POST "https://${RANCHER_HOST}/v3/users" \
+  user_id=$(curl -s -k -X POST "https://${RANCHER_HOST}/v3/users" \
     -H "Authorization: Bearer ${rancher_token}" \
     -H 'Content-Type: application/json' \
-    -d "{\"enabled\": true, \"mustChangePassword\": false, \"password\": \"${CORRAL_rancher_password}\", \"username\": \"standard_user\"}"
+    -d "{\"enabled\": true, \"mustChangePassword\": false, \"password\": \"${CORRAL_rancher_password}\", \"username\": \"standard_user\"}" | grep -o '"id":"[^"]*' | grep -o '[^"]*$')
 
+  curl -s -k -X POST "https://${RANCHER_HOST}/v3/globalrolebindings" \
+    -H "Authorization: Bearer ${rancher_token}" \
+    -H 'Content-Type: application/json' \
+    -d "{\"globalRoleId\": \"user\", \"type\": \"globalRoleBinding\", \"userId\": \"${user_id}\"}"
+
+  project_id=$(curl -s -k "https://${RANCHER_HOST}/v3/projects?name=Default&clusterId=local" \
+    -H "Authorization: Bearer ${rancher_token}" \
+    -H 'Content-Type: application/json' | grep -o '"id":"[^"]*' | grep -o '[^"]*$')
+
+  curl -s -k -X POST "https://${RANCHER_HOST}/v3/projectroletemplatebindings" \
+    -H "Authorization: Bearer ${rancher_token}" \
+    -H 'Content-Type: application/json' \
+    -d "{\"type\": \"projectroletemplatebinding\", \"roleTemplateId\": \"project-member\", \"projectId\": \"${project_id}\", \"userId\": \"${user_id}\"}"  
+
+  # Retrieving the dashboard branch used by the Rancher server
   branch_from_rancher=`curl -s -k -X GET "https://${RANCHER_HOST}/dashboard/about" \
     -H "Accept: text/html,application/xhtml+xml,application/xml" \
     -H "Authorization: Bearer ${rancher_token}" | grep "release-" | sed -E 's/^\s*.*:\/\///g' | cut -d'/' -f 3 | tail -n 1`
@@ -140,6 +159,8 @@ if [ ${CORRAL_rancher_type} = "existing" ]; then
 
     TEST_BASE_URL="https://${CORRAL_rancher_host}/dashboard"
 
+    echo "Custom key: $CORRAL_custom_node_key"
+
     docker run --name "${CORRAL_rancher_host}" -t \
       -e CYPRESS_VIDEO=false \
       -e CYPRESS_VIEWPORT_WIDTH="${VIEWPORT_WIDTH}" \
@@ -149,6 +170,13 @@ if [ ${CORRAL_rancher_type} = "existing" ]; then
       -e TEST_PASSWORD="${CORRAL_rancher_password}" \
       -e TEST_SKIP_SETUP=true \
       -e TEST_SKIP=setup \
+      -e AWS_ACCESS_KEY_ID=${CORRAL_aws_access_key} \
+      -e AWS_SECRET_ACCESS_KEY=${CORRAL_aws_secret_key} \
+      -e AZURE_CLIENT_ID=${CORRAL_azure_client_id} \
+      -e AZURE_CLIENT_SECRET=${CORRAL_azure_client_secret} \
+      -e AZURE_AKS_SUBSCRIPTION_ID=${CORRAL_azure_subscription_id} \
+      -e CUSTOM_NODE_IP="${CORRAL_custom_node_ip}" \
+      -e CUSTOM_NODE_KEY="${CORRAL_custom_node_key}" \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
 
@@ -176,6 +204,13 @@ elif  [ ${CORRAL_rancher_type} = "recurring" ]; then
       -e TEST_PASSWORD="${CORRAL_rancher_password}" \
       -e TEST_SKIP_SETUP=true \
       -e TEST_SKIP=setup \
+      -e AWS_ACCESS_KEY_ID=${CORRAL_aws_access_key} \
+      -e AWS_SECRET_ACCESS_KEY=${CORRAL_aws_secret_key} \
+      -e AZURE_CLIENT_ID=${CORRAL_azure_client_id} \
+      -e AZURE_CLIENT_SECRET=${CORRAL_azure_client_secret} \
+      -e AZURE_AKS_SUBSCRIPTION_ID=${CORRAL_azure_subscription_id} \
+      -e CUSTOM_NODE_IP="${CORRAL_custom_node_ip}" \
+      -e CUSTOM_NODE_KEY="${CORRAL_custom_node_key}" \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
 

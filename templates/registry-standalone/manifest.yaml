@@ -63,6 +63,14 @@ variables:
   windows_registry:
     type: string
     description: "Flag to add windows images to the registry"
+  download_url:
+    type: string
+    description: "The download URL for all rancher registry resources. i.e. rancher-images.txt"
+    optional: true
+  suse_registry:
+    type: string
+    description: "the suse registry name, if any"
+    optional: true
 commands:
   - command: /opt/corral/registry/registry-install.sh
     node_pools:

@@ -19,6 +19,10 @@ variables:
   cert_manager_version:
     type: string
     description: "The cert-manager version for HA rancher install"
+  rancher_chart_url:
+    type: string
+    description: "the URL of the helm repo where rancher chart exists. i.e. https://releases.rancher.com/server-charts/latest"
+    optional: true
 commands:
   - command: /opt/corral/rancher/preflight.sh
     node_pools:

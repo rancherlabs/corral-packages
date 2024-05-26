@@ -4,6 +4,10 @@ variables:
   rancher_version:
     type: string
     description: "Specify rancher version to install. Defaults to latest stable version."
+  rancher_image:
+    type: string
+    optional: true
+    description: "Specify rancher image for rancher image in a separate docker hub/registry"
   rancher_image_tag:
     type: string
     optional: true
@@ -21,10 +25,13 @@ variables:
     type: string
     description: "Host of newly created rancher instance."
   rancher_chart_repo:
-    readOnly: true
     type: string
     default: "latest"
     description: "Name of Helm chart to use for Rancher install. Example: latest"
+  rancher_chart_url:
+    type: string
+    default: "https://releases.rancher.com/server-charts"
+    description: "URL of Helm chart to use for Rancher install. Example: https://releases.rancher.com/server-charts"
   cert_manager_version:
     type: string
     description: "The cert-manager version for HA rancher install"
@@ -36,6 +43,10 @@ variables:
     type: string
     optional: true
     description: "The registry fqdn"
+  env_var_map:
+    type: array
+    optional: true
+    description: "The enviornment variables set in rancher. In the format of 'key|value'"
 commands:
   - command: /opt/corral/rancher/preflight.sh
     node_pools:
