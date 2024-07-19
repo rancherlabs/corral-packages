@@ -20,3 +20,5 @@ variable "instance_type" {}
 variable "node_count" {}
 variable "airgap_setup" {}
 variable "bastion_ip" {}
+variable "bastion_private_ip" {}
+variable "proxy_setup" {}
