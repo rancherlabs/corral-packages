@@ -61,6 +61,10 @@ variables:
     type: boolean
     description: "Boolean that when set, will create rke setup rather regular cluster nodes."
     default: false
+  proxy_setup:
+    type: boolean
+    description: "Boolean that when set, will create proxied nodes rather regular cluster nodes."
+    default: false
   instance_type:
     type: string
     optional: false

@@ -40,6 +40,10 @@ variables:
     type: string
     optional: false
     description: "The subnet where the ec2 instance and the load balancer is created"
+  proxy_setup:
+    type: boolean
+    description: "Boolean that when set to true, will utilize registry_nodes as the bastion node for a proxied setup, ranther than a registry."
+    default: false
   airgap_setup:
     type: boolean
     description: "Boolean that when set to true, will set the registry_fqdn to the private IP address, rather than the public IP address."
