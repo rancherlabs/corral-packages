@@ -7,6 +7,7 @@ config="write-kubeconfig-mode: 644
 cluster-init: true
 tls-san:
   - ${CORRAL_api_host}
+  - ${CORRAL_kube_api_host}
 "
 
 mkdir -p /etc/rancher/k3s
