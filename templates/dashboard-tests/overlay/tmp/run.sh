@@ -1,6 +1,9 @@
 #!/bin/bash
+
 shopt -s extglob
 set -x
+
+/tmp/configure.sh
 
 function corral_set() {
     echo "corral_set $1=$2"
@@ -170,27 +173,13 @@ if [ ${CORRAL_rancher_type} = "existing" ]; then
     TEST_BASE_URL="https://${CORRAL_rancher_host}/dashboard"
 
     echo "Custom key: $CORRAL_custom_node_key"
-
-    docker run --name "${CORRAL_rancher_host}" -t \
-      -e CYPRESS_VIDEO=false \
-      -e CYPRESS_VIEWPORT_WIDTH="${VIEWPORT_WIDTH}" \
-      -e CYPRESS_VIEWPORT_HEIGHT="${VIEWPORT_HEIGHT}" \
-      -e TEST_BASE_URL=${TEST_BASE_URL} \
-      -e TEST_USERNAME=${CORRAL_rancher_username} \
-      -e TEST_PASSWORD="${CORRAL_rancher_password}" \
-      -e TEST_SKIP_SETUP=true \
-      -e TEST_SKIP=setup \
-      -e AWS_ACCESS_KEY_ID=${CORRAL_aws_access_key} \
-      -e AWS_SECRET_ACCESS_KEY=${CORRAL_aws_secret_key} \
-      -e AZURE_CLIENT_ID=${CORRAL_azure_client_id} \
-      -e AZURE_CLIENT_SECRET=${CORRAL_azure_client_secret} \
-      -e AZURE_AKS_SUBSCRIPTION_ID=${CORRAL_azure_subscription_id} \
-      -e CUSTOM_NODE_IP="${CORRAL_custom_node_ip}" \
-      -e CUSTOM_NODE_KEY="${CORRAL_custom_node_key}" \
+     
+    docker run --name "${CORRAL_rancher_host}" --env-file ${HOME}/.env -t \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
 
     exit_code=$?
+
 elif  [ ${CORRAL_rancher_type} = "recurring" ]; then
     TEST_USERNAME="admin"
     rancher_init ${CORRAL_rancher_host} ${CORRAL_rancher_host} ${CORRAL_rancher_password}
@@ -201,26 +190,13 @@ elif  [ ${CORRAL_rancher_type} = "recurring" ]; then
 
     case "${CORRAL_cypress_tags}" in
         *"@standardUser"* )
-            rancher_username="standard_user"
+            sed -i.bak '/TEST_USERNAME/d' ${HOME}/.env
+            echo TEST_USERNAME="standard_user" >> .env
+            cat ${HOME}/.env
             ;;
     esac
 
-    docker run --name "${CORRAL_rancher_host}" -t \
-      -e CYPRESS_VIDEO=false \
-      -e CYPRESS_VIEWPORT_WIDTH="${VIEWPORT_WIDTH}" \
-      -e CYPRESS_VIEWPORT_HEIGHT="${VIEWPORT_HEIGHT}" \
-      -e TEST_BASE_URL="${TEST_BASE_URL}" \
-      -e TEST_USERNAME="${rancher_username}" \
-      -e TEST_PASSWORD="${CORRAL_rancher_password}" \
-      -e TEST_SKIP_SETUP=true \
-      -e TEST_SKIP=setup \
-      -e AWS_ACCESS_KEY_ID=${CORRAL_aws_access_key} \
-      -e AWS_SECRET_ACCESS_KEY=${CORRAL_aws_secret_key} \
-      -e AZURE_CLIENT_ID=${CORRAL_azure_client_id} \
-      -e AZURE_CLIENT_SECRET=${CORRAL_azure_client_secret} \
-      -e AZURE_AKS_SUBSCRIPTION_ID=${CORRAL_azure_subscription_id} \
-      -e CUSTOM_NODE_IP="${CORRAL_custom_node_ip}" \
-      -e CUSTOM_NODE_KEY="${CORRAL_custom_node_key}" \
+    docker run --name "${CORRAL_rancher_host}" --env-file ${HOME}/.env -t \
       -v "${HOME}":/e2e \
       -w /e2e dashboard-test
 
