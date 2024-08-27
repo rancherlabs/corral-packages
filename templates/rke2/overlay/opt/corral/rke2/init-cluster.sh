@@ -7,7 +7,6 @@ config="write-kubeconfig-mode: 644
 cni: ${CORRAL_cni}
 tls-san:
   - ${CORRAL_api_host}
-  - ${CORRAL_kube_api_host}
 "
 
 if [ "${CORRAL_registry_fqdn}" ]; then

@@ -9,5 +9,14 @@ templates:
   - k3s
   - rancher
 variables:
+  kubernetes_version:
+    - v1.26.8+k3s1
+    - v1.25.13+k3s1
+    - v1.24.17+k3s1
+    - v1.23.16+k3s1
+  rancher_version:
+    - 2.7.7
+    - 2.7.6
+    - 2.7.5
   cert_manager_version:
-    - 1.15.0
+    - 1.8.0
