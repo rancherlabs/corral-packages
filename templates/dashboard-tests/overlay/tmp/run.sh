@@ -34,14 +34,25 @@ build_image () {
     dashboard_branch=$1
     git clone -b "${dashboard_branch}" \
       "${GITHUB_URL}${CORRAL_dashboard_repo}" ${HOME}/dashboard
-    echo $CORRAL_imported_kubeconfig | base64 -d > ${HOME}/dashboard/imported_config
-    cat ${HOME}/dashboard/imported_config
 
     if [[ "${dashboard_branch}" != "master" ]]; then
       rm -rf ${HOME}/dashboard/cypress/jenkins
       curl https://codeload.github.com/rancher/dashboard/tar.gz/master |  tar -xz --strip=2 dashboard-master/cypress/jenkins
       mv ${HOME}/jenkins ${HOME}/dashboard/cypress/
     fi
+
+    shopt -s nocasematch
+    if [[ "${CORRAL_create_initial_clusters}" == "no" ]]; then
+      cd ${HOME}
+      ENTRYPOINT_FILE_PATH="dashboard/cypress/jenkins"
+      sed -i.bak "/kubectl/d" "${ENTRYPOINT_FILE_PATH}/cypress.sh"
+      sed -i.bak "/imported_config/d" "${ENTRYPOINT_FILE_PATH}/Dockerfile.ci"
+      cat "${ENTRYPOINT_FILE_PATH}/cypress.sh"
+    else 
+      echo $CORRAL_imported_kubeconfig | base64 -d > ${HOME}/dashboard/imported_config
+      cat ${HOME}/dashboard/imported_config
+    fi
+    shopt -u nocasematch
 
     if [ -f "${NODEJS_FILE}" ]; then rm -r "${NODEJS_FILE}"; fi
     curl -L --silent -o "${NODEJS_FILE}" \
@@ -80,7 +91,6 @@ build_image () {
     cd ${HOME}/dashboard
     sudo chown -R $(whoami) .
     echo "${PWD}"
-
 }
 
 rancher_init () {
