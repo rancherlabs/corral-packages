@@ -44,7 +44,7 @@ resource "aws_instance" "registry" {
 
   ebs_block_device {
     device_name           = "/dev/sda1"
-    volume_size           = "${var.aws_volume_size}"
+    volume_size           = "200"
     volume_type           = "gp3"
     encrypted             = true
     delete_on_termination = true

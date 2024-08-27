@@ -201,11 +201,11 @@ else
 		echo "No suse registry defined; expecting rancher/rancher image to exist in registry"
 	else
 		docker pull "${CORRAL_suse_registry}/rancher/rancher:v${CORRAL_rancher_version}"
-		docker tag "${CORRAL_suse_registry}/rancher/rancher:v${CORRAL_rancher_version}" "${CORRAL_registry_fqdn}/${CORRAL_suse_registry}/rancher/rancher:v${CORRAL_rancher_version}"
-		docker push "${CORRAL_registry_fqdn}/${CORRAL_suse_registry}/rancher/rancher:v${CORRAL_rancher_version}"
+		docker tag "${CORRAL_suse_registry}/rancher/rancher:v${CORRAL_rancher_version}" "${CORRAL_registry_fqdn}/rancher/rancher:v${CORRAL_rancher_version}"
+		docker push "${CORRAL_registry_fqdn}/rancher/rancher:v${CORRAL_rancher_version}"
 		docker pull "${CORRAL_suse_registry}/rancher/rancher-agent:v${CORRAL_rancher_version}"
-		docker tag "${CORRAL_suse_registry}/rancher/rancher-agent:v${CORRAL_rancher_version}" "${CORRAL_registry_fqdn}/${CORRAL_suse_registry}/rancher/rancher-agent:v${CORRAL_rancher_version}"
-		docker push "${CORRAL_registry_fqdn}/${CORRAL_suse_registry}/rancher/rancher-agent:v${CORRAL_rancher_version}"
+		docker tag "${CORRAL_suse_registry}/rancher/rancher-agent:v${CORRAL_rancher_version}" "${CORRAL_registry_fqdn}/rancher/rancher-agent:v${CORRAL_rancher_version}"
+		docker push "${CORRAL_registry_fqdn}/rancher/rancher-agent:v${CORRAL_rancher_version}"
 	fi
 fi
 
