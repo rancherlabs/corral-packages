@@ -3,11 +3,20 @@
 CORRAL_api_host="${CORRAL_fqdn}"
 echo "corral_set api_host=${CORRAL_api_host}"
 
-config="write-kubeconfig-mode: 644
-cni: ${CORRAL_cni}
+if [ "${CORRAL_server_count}" -gt 1 ]; then
+  config="write-kubeconfig-mode: 644
+cni: "${CORRAL_cni}"
 tls-san:
-  - ${CORRAL_api_host}
+  - "${CORRAL_api_host}"
+  - "${CORRAL_kube_api_host}"
 "
+else
+  config="write-kubeconfig-mode: 644
+cni: "${CORRAL_cni}"
+tls-san:
+  - "${CORRAL_api_host}"
+"
+fi
 
 if [ "${CORRAL_registry_fqdn}" ]; then
   config+="system-default-registry: ${CORRAL_registry_fqdn}"
