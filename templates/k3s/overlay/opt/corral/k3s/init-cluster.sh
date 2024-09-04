@@ -3,20 +3,12 @@
 CORRAL_api_host="${CORRAL_fqdn}"
 echo "corral_set api_host=${CORRAL_api_host}"
 
-if [ "${CORRAL_server_count}" -gt 1 ]; then
-  config="write-kubeconfig-mode: 644
-cluster-init: true
+config="write-kubeconfig-mode: 644
+cni: ${CORRAL_cni}
 tls-san:
-  - "${CORRAL_api_host}"
-  - "${CORRAL_kube_api_host}"
+  - ${CORRAL_api_host}
+  - ${CORRAL_kube_api_host}
 "
-else
-  config="write-kubeconfig-mode: 644
-cluster-init: true
-tls-san:
-  - "${CORRAL_api_host}"
-"
-fi
 
 mkdir -p /etc/rancher/k3s
 cat > /etc/rancher/k3s/config.yaml <<-EOF
