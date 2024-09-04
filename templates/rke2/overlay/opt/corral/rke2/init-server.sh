@@ -6,6 +6,7 @@ server: https://${CORRAL_kube_api_host}:9345
 token: ${CORRAL_node_token}
 tls-san:
   - ${CORRAL_api_host}
+  - ${CORRAL_kube_api_host}
 "
 
 if [ "${CORRAL_registry_fqdn}" ]; then

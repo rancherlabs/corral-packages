@@ -5,6 +5,7 @@ server: https://${CORRAL_kube_api_host}:6443
 token: ${CORRAL_node_token}
 tls-san:
   - ${CORRAL_api_host}
+  - ${CORRAL_kube_api_host}
 "
 
 mkdir -p /etc/rancher/k3s
