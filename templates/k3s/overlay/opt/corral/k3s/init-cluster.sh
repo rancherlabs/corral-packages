@@ -4,6 +4,7 @@ CORRAL_api_host="${CORRAL_fqdn}"
 echo "corral_set api_host=${CORRAL_api_host}"
 
 config="write-kubeconfig-mode: 644
+cluster-init: true
 cni: ${CORRAL_cni}
 tls-san:
   - ${CORRAL_api_host}
