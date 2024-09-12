@@ -149,9 +149,9 @@ rancher_init () {
     -d "{\"type\": \"projectroletemplatebinding\", \"roleTemplateId\": \"project-member\", \"projectId\": \"${project_id}\", \"userId\": \"${user_id}\"}"  
 
   # Retrieving the dashboard branch used by the Rancher server
-  branch_from_rancher=`curl -s -k -X GET "https://${RANCHER_HOST}/dashboard/about" \
-    -H "Accept: text/html,application/xhtml+xml,application/xml" \
-    -H "Authorization: Bearer ${rancher_token}" | grep "release-" | sed -E 's/^\s*.*:\/\///g' | cut -d'/' -f 3 | tail -n 1`
+  branch_from_rancher=`curl -s -k -X GET "https://${RANCHER_HOST}/v1/management.cattle.io.settings" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${rancher_token}" | grep -o '"default":"[^"]*' | grep -o '[^"]*$' | grep release- | sed -E 's/^\s*.*:\/\///g' | cut -d'/' -f 3 | tail -n 1`
   
   if [[ -z "${branch_from_rancher}" ]]; then
     is_it_latest=`curl -s -k -X GET "https://${RANCHER_HOST}/dashboard/about" \

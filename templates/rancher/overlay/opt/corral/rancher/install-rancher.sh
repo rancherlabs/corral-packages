@@ -1,14 +1,19 @@
 #!/bin/bash
 set -ex
 
-repos=("latest" "alpha" "stable" "prime")
+repos=("latest" "alpha" "stable" "prime", "optimus")
 if [[ ! ${repos[*]} =~ ${CORRAL_rancher_chart_repo} ]]; then
-  echo 'Error: `rancher_chart_repo` must be one of ["latest", "alpha", "stable"]'
+  echo 'Error: `rancher_chart_repo` must be one of ["latest", "alpha", "stable", "prime", "optimus"]'
   exit 1
 fi
 
-helm repo add "rancher-${CORRAL_rancher_chart_repo}" "${CORRAL_rancher_chart_url}/${CORRAL_rancher_chart_repo}"
-helm repo update
+if [ ${CORRAL_rancher_chart_repo} == "optimus" ]; then
+  helm repo add "rancher-${CORRAL_rancher_chart_repo}" "${CORRAL_rancher_chart_url}"
+  helm repo update
+else
+  helm repo add "rancher-${CORRAL_rancher_chart_repo}" "${CORRAL_rancher_chart_url}/${CORRAL_rancher_chart_repo}"
+  helm repo update
+fi
 
 CORRAL_rancher_host=${CORRAL_rancher_host:="${CORRAL_fqdn}"}
 CORRAL_rancher_version=${CORRAL_rancher_version:=$(helm search repo rancher-"${CORRAL_rancher_chart_repo}"/rancher -o json | jq -r .[0].version)}
@@ -24,11 +29,14 @@ if [ -z "${CORRAL_registry_fqdn}" ]; then
     args+=("--set rancherImageTag=${CORRAL_rancher_image_tag}")
   fi
   if [ "${CORRAL_env_var_map}" ]; then
-    STRIPPED=$(echo ${CORRAL_env_var_map} | tr -d '[]' | tr -d '"')
+    STRIPPED=$(echo ${CORRAL_env_var_map} | tr -d '[]' | tr -d '"' | tr -d ',')
     COUNT=0
     IFS=' ' read -ra NEWARRAY <<< "$STRIPPED"
     for i in "${NEWARRAY[@]}"; do
         IFS='|' read -ra ADDR <<< "$i"
+        if [ "${ADDR[0]}" == "RANCHER_PRIME" ]; then
+        ADDR[1]=$(echo "${ADDR[1]}"| sed 's/true/\\"true\\"/g')
+        fi
         echo "key is ${ADDR[0]}"
         echo "value is ${ADDR[1]}"
         args+=("--set extraEnv[${COUNT}].name=${ADDR[0]} --set extraEnv[${COUNT}].value=${ADDR[1]}")
