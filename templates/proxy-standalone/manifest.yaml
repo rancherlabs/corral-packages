@@ -1,0 +1,26 @@
+name: proxy
+description: |
+  A docker squid proxy
+variables:
+  registry_ip:
+    type: string
+    readOnly: true
+    description: "Public IP address of the proxy bastion node"
+  registry_private_ip:
+    type: string
+    readOnly: true
+    description: "Private IP address of the proxy bastion node"
+  rancher_version:
+    type: string
+    description: "The rancher version to download the images for"
+  cert_manager_version:
+    type: string
+    description: "The cert-manager version for HA rancher install"
+  proxy_setup:
+    type: boolean
+    description: "Boolean to set a registry_node as a proxy bastion node"
+    default: true
+commands:
+  - command: /opt/corral/proxy/proxy-install.sh
+    node_pools:
+      - registry
