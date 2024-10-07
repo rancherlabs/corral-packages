@@ -70,13 +70,15 @@ build_image () {
     echo "${PWD}"
     node -v
     npm version
-    npm install -g yarn junit-report-merger mocha mochawesome mochawesome-merge mochawesome-report-generator
+
+    npm install -g yarn
+    yarn config set ignore-engines true
+    yarn global add junit-report-merger
+
     cd ${HOME}
 
     echo "junit-report-merger version: "
     jrm --version
-    echo "mochawesome-merge version: "
-    marge --version
 
     DOCKERFILE_PATH="dashboard/cypress/jenkins"
 
@@ -152,7 +154,7 @@ rancher_init () {
   branch_from_rancher=`curl -s -k -X GET "https://${RANCHER_HOST}/v1/management.cattle.io.settings" \
     -H "Accept: application/json" \
     -H "Authorization: Bearer ${rancher_token}" | grep -o '"default":"[^"]*' | grep -o '[^"]*$' | grep release- | sed -E 's/^\s*.*:\/\///g' | cut -d'/' -f 3 | tail -n 1`
-  
+
   if [[ -z "${branch_from_rancher}" ]]; then
     is_it_latest=`curl -s -k -X GET "https://${RANCHER_HOST}/dashboard/about" \
     -H "Accept: text/html,application/xhtml+xml,application/xml" \
@@ -282,13 +284,9 @@ DASHBOARD_PATH="${HOME}/dashboard"
 sudo chown -R "$(whoami)" .
 echo "${PWD}"
 find "${HOME}" -type f -iname "*.xml" -not -path "*node_modules*" -not -path "*golang*"
-find "${HOME}" -type f -iname "*mochawesome*" -not -path "*node_modules*"
+find "${HOME}" -type f -iname "*.html" -not -path "*node_modules*" -not -path "*golang*"
 
 jrm "${DASHBOARD_PATH}/results.xml" "${DASHBOARD_PATH}/cypress/jenkins/reports/junit/junit-*" || { echo 'junit reporting failed' ; exit 1; }
-
-mochawesome-merge "${DASHBOARD_PATH}/cypress/jenkins/reports/mochawesome/*.json" \
-  -o "${DASHBOARD_PATH}/results.json"
-marge -o "${DASHBOARD_PATH}" "${DASHBOARD_PATH}/results.json" || { echo 'html reporting failed' ; exit 1; }
 
 if [ -s "${DASHBOARD_PATH}/results.xml" ]; then
     corral_set cypress_completed "completed"
