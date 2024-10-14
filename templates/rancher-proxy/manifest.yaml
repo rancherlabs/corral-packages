@@ -1,0 +1,52 @@
+name: rancher-proxy
+description: Install rancher on the airgapped kubernetes cluster behind a proxy.
+variables:
+  rancher_version:
+    type: string
+    description: "Specify rancher version to install. Defaults to latest stable version."
+  bootstrap_password:
+    readOnly: true
+    type: string
+    description: "Initial password for the rancher `admin` user."
+  rancher_host:
+    readOnly: true
+    type: string
+    description: "Host of newly created rancher instance."
+  rancher_url:
+    readOnly: true
+    type: string
+    description: "Host of newly created rancher instance."
+  cert_manager_version:
+    type: string
+    description: "The cert-manager version for rancher install"
+  rancher_chart_repo:
+    optional: false
+    type: string
+    default: "latest"
+    description: "Name of Helm chart to use for Rancher install. Example: latest, alpha, stable, prime or staging"
+  rancher_image:
+    type: string
+    optional: true
+    description: "Specify rancher image for rancher image in a separate docker hub/registry"
+  rancher_image_tag:
+    type: string
+    optional: true
+    description: "Specify rancher image tag for the latest commit/version of rancher."
+  rancher_chart_url:
+    type: string
+    description: "the URL of the helm repo where rancher chart exists. i.e. https://releases.rancher.com/server-charts/latest"
+    optional: true
+commands:
+  - command: "/opt/corral/rancher/preflight.sh"
+    node_pools:
+      - bastion
+      - server
+  - command: "/opt/corral/rancher/install-cert-manager.sh"
+    node_pools:
+      - bastion
+  - command: "/opt/corral/rancher/install-rancher.sh"
+    node_pools:
+      - bastion
+  - command: "/opt/corral/rancher/wait-for-password.sh"
+    node_pools:
+      - bastion

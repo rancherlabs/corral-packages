@@ -1,5 +1,5 @@
 output "registry_fqdn" {
-  value = aws_route53_record.aws_route53.fqdn
+  value = var.proxy_setup ? null : aws_route53_record.aws_route53.fqdn
 }
 
 output "registry_ip" {
@@ -7,6 +7,14 @@ output "registry_ip" {
 }
 
 output "registry_private_ip" {
+  value = aws_instance.registry.private_ip
+}
+
+output "bastion_ip" {
+  value = aws_instance.registry.public_ip
+}
+
+output "bastion_private_ip" {
   value = aws_instance.registry.private_ip
 }
 
