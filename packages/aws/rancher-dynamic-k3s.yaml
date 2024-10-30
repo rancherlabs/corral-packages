@@ -11,4 +11,5 @@ templates:
   - rancher
 variables:
   cert_manager_version:
+    - 1.15.0
     - 1.8.0
