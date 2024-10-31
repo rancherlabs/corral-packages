@@ -12,15 +12,16 @@ provider "random" {}
 provider "aws" {
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
+  token      = var.aws_session_token
   region     = var.aws_region
 }
 
 resource "random_id" "cluster_id" {
-  byte_length       = 6
+  byte_length = 6
 }
 
 resource "aws_key_pair" "corral_key" {
-  key_name       = "corral-${var.corral_user_id}-${random_id.cluster_id.hex}"
+  key_name   = "corral-${var.corral_user_id}-${random_id.cluster_id.hex}"
   public_key = var.corral_public_key
 }
 
@@ -29,18 +30,18 @@ data "cloudinit_config" "docker_service_config" {
   base64_encode = true
   part {
     content_type = "text/cloud-config"
-    content = var.install_docker ? format("%s%s", file("${path.module}/cloud-init/install-docker.yaml"), file("${path.module}/cloud-init/setup-docker-service.yaml")) : file("${path.module}/cloud-init/setup-docker-service.yaml")
+    content      = var.install_docker ? format("%s%s", file("${path.module}/cloud-init/install-docker.yaml"), file("${path.module}/cloud-init/setup-docker-service.yaml")) : file("${path.module}/cloud-init/setup-docker-service.yaml")
 
   }
 }
 
 resource "aws_instance" "registry" {
-  ami = var.aws_ami
-  instance_type     = var.instance_type
-  key_name = aws_key_pair.corral_key.key_name
+  ami                    = var.aws_ami
+  instance_type          = var.instance_type
+  key_name               = aws_key_pair.corral_key.key_name
   vpc_security_group_ids = [var.aws_security_group]
-  subnet_id = var.aws_subnet
-  user_data = data.cloudinit_config.docker_service_config.rendered
+  subnet_id              = var.aws_subnet
+  user_data              = data.cloudinit_config.docker_service_config.rendered
 
   ebs_block_device {
     device_name           = "/dev/sda1"
@@ -58,34 +59,34 @@ resource "aws_instance" "registry" {
       "echo \"${var.corral_private_key}\" > /root/.ssh/id_${var.corral_ssh_key_type}",
       "chmod 700 /root/.ssh/id_${var.corral_ssh_key_type}",
       "EOF",
-    ]: [
+      ] : [
       "sudo su <<EOF",
       "echo ${var.corral_public_key} ${self.key_name} > /root/.ssh/authorized_keys",
       "EOF",
     ]
   }
   connection {
-      type        = "ssh"
-      host        = self.public_ip
-      user        = var.aws_ssh_user
-      private_key = var.corral_private_key
-      timeout     = "4m"
-   }
+    type        = "ssh"
+    host        = self.public_ip
+    user        = var.aws_ssh_user
+    private_key = var.corral_private_key
+    timeout     = "4m"
+  }
 
   tags = {
-    Name  = "${var.corral_user_id}-${random_id.cluster_id.hex}-registry"
+    Name = "${var.corral_user_id}-${random_id.cluster_id.hex}-registry"
   }
 }
 
 resource "aws_route53_record" "aws_route53" {
-  zone_id            = data.aws_route53_zone.selected.zone_id
-  name               = "${aws_instance.registry.tags.Name}"
-  type               = "A"
-  ttl                = "300"
-  records            = [var.airgap_setup ? aws_instance.registry.private_ip : aws_instance.registry.public_ip]
+  zone_id = data.aws_route53_zone.selected.zone_id
+  name    = aws_instance.registry.tags.Name
+  type    = "A"
+  ttl     = "300"
+  records = [var.airgap_setup ? aws_instance.registry.private_ip : aws_instance.registry.public_ip]
 }
 
 data "aws_route53_zone" "selected" {
-  name               = var.aws_route53_zone
-  private_zone       = false
+  name         = var.aws_route53_zone
+  private_zone = false
 }
