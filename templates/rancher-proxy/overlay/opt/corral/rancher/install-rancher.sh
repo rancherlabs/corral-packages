@@ -16,7 +16,7 @@ community=("latest" "alpha" "stable")
 
 if [ "$minor_version" -gt 24 ]; then
     
-    args=("rancher-$CORRAL_rancher_chart_repo/rancher" "--namespace cattle-system" "--set global.cattle.psp.enabled=false" "--set hostname=$CORRAL_rancher_host" "--version=$CORRAL_rancher_version" "--set proxy=http://$CORRAL_registry_private_ip:3219")
+    args=("rancher-$CORRAL_rancher_chart_repo/rancher" "--namespace cattle-system" "--set global.cattle.psp.enabled=false" "--set hostname=$CORRAL_rancher_host" "--version=$CORRAL_rancher_version" "--set proxy=http://$CORRAL_bastion_private_ip:3219")
 
     if [[  ${community[*]} =~ ${CORRAL_rancher_chart_repo} ]]; then
       if [ ! -z "$CORRAL_rancher_chart_url" ]; then
@@ -60,7 +60,7 @@ if [ "$minor_version" -gt 24 ]; then
 
     helm upgrade --install rancher ${args[*]} --set noProxy=127.0.0.0/8\\,10.0.0.0/8\\,172.0.0.0/8\\,192.168.0.0/16\\,.svc\\,.cluster.local\\,cattle-system.svc\\,169.254.169.254 ${args2[*]}
 else
-    helm upgrade --install rancher rancher-$CORRAL_rancher_chart_repo/rancher --namespace cattle-system --set hostname=$CORRAL_rancher_host --version=$CORRAL_rancher_version --set proxy=http://$CORRAL_registry_private_ip:3219 --set noProxy=127.0.0.0/8\\,10.0.0.0/8\\,172.0.0.0/8\\,192.168.0.0/16\\,.svc\\,.cluster.local\\,cattle-system.svc\\,169.254.169.254
+    helm upgrade --install rancher rancher-$CORRAL_rancher_chart_repo/rancher --namespace cattle-system --set hostname=$CORRAL_rancher_host --version=$CORRAL_rancher_version --set proxy=http://$CORRAL_bastion_private_ip:3219 --set noProxy=127.0.0.0/8\\,10.0.0.0/8\\,172.0.0.0/8\\,192.168.0.0/16\\,.svc\\,.cluster.local\\,cattle-system.svc\\,169.254.169.254
 fi
 
 echo "corral_set rancher_version=$CORRAL_rancher_version"

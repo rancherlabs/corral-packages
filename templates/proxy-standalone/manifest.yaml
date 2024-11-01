@@ -2,11 +2,11 @@ name: proxy
 description: |
   A docker squid proxy
 variables:
-  registry_ip:
+  bastion_ip:
     type: string
     readOnly: true
     description: "Public IP address of the proxy bastion node"
-  registry_private_ip:
+  bastion_private_ip:
     type: string
     readOnly: true
     description: "Private IP address of the proxy bastion node"

@@ -32,7 +32,7 @@ bootstrap_password=$(kubectl -n cattle-system get secret/bootstrap-secret -o jso
 
 corral_log "Bastion public address: ${CORRAL_registry_ip}" 
 
-corral_log "Bastion private address: ${CORRAL_registry_private_ip}"
+corral_log "Bastion private address: ${CORRAL_bastion_private_ip}"
 
 corral_log "Save private key: echo \"${CORRAL_corral_private_key}\" | tr -d '\"' > id_rsa"
 
