@@ -6,6 +6,9 @@ variables:
     type: string
     description: "registration command to register a node as cluster to a existing rancher instance"
 commands:
+  - command: "/opt/corral/cluster/proxy-env.sh"
+    node_pools:
+      - node
   - command: "/opt/corral/cluster/register-cluster.sh"
     node_pools:
       - node

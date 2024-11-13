@@ -19,6 +19,11 @@ commands:
       - bastion
       - server
       - agent
+  - command: "/opt/corral/rke2/proxy-env.sh"
+    node_pools:
+      - bastion
+      - server
+      - agent
   - command: "/opt/corral/rke2/init-cluster.sh"
     node_pools:
       - bastion
