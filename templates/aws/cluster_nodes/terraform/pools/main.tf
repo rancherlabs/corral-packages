@@ -36,7 +36,7 @@ resource "aws_instance" "server" {
   key_name = aws_key_pair.corral_key.key_name
   vpc_security_group_ids = [var.aws_security_group]
   subnet_id = var.aws_subnet
-  associate_public_ip_address = var.airgap_setup ? false : true
+  associate_public_ip_address = var.airgap_setup || var.proxy_setup ? false : true
 
   ebs_block_device {
      device_name           = "/dev/sda1"
@@ -47,7 +47,7 @@ resource "aws_instance" "server" {
    }
 
   provisioner "remote-exec" {
-    inline = var.airgap_setup || var.rke_setup ? [
+    inline = var.airgap_setup || var.rke_setup || var.proxy_setup ? [
       "sudo su <<EOF",
       "echo \"${var.corral_public_key} ${self.key_name}\" > /root/.ssh/authorized_keys",
       "echo \"${var.corral_private_key}\"",
@@ -62,12 +62,12 @@ resource "aws_instance" "server" {
   }
   connection {
       type        = "ssh"
-      host        = var.airgap_setup ? self.private_ip : self.public_ip
+      host        = var.airgap_setup || var.proxy_setup ? self.private_ip : self.public_ip
       user        = var.aws_ssh_user
       private_key = var.corral_private_key
       timeout     = "4m"
-      bastion_host = var.airgap_setup ? var.registry_ip : null
-      bastion_user = var.airgap_setup ? var.aws_ssh_user : null
+      bastion_host = var.airgap_setup || var.proxy_setup ? var.registry_ip : null
+      bastion_user = var.airgap_setup || var.proxy_setup ? var.aws_ssh_user : null
    }
 
   tags = {
@@ -82,7 +82,7 @@ resource "aws_instance" "agent" {
   key_name = aws_key_pair.corral_key.key_name
   vpc_security_group_ids = [var.aws_security_group]
   subnet_id = var.aws_subnet
-  associate_public_ip_address = var.airgap_setup ? false : true
+  associate_public_ip_address = var.airgap_setup || var.proxy_setup ? false : true
 
   ebs_block_device {
      device_name           = "/dev/sda1"
@@ -93,7 +93,7 @@ resource "aws_instance" "agent" {
    }
 
   provisioner "remote-exec" {
-    inline = var.airgap_setup ? [
+    inline = var.airgap_setup || var.proxy_setup ? [
       "sudo su <<EOF",
       "echo \"${var.corral_public_key} ${self.key_name}\" > /root/.ssh/authorized_keys",
       "echo \"${var.corral_private_key}\"",
@@ -108,12 +108,12 @@ resource "aws_instance" "agent" {
   }
   connection {
       type        = "ssh"
-      host        = var.airgap_setup ? self.private_ip : self.public_ip
+      host        = var.airgap_setup || var.proxy_setup ? self.private_ip : self.public_ip
       user        = var.aws_ssh_user
       private_key = var.corral_private_key
       timeout     = "4m"
-      bastion_host = var.airgap_setup ? var.registry_ip : null
-      bastion_user = var.airgap_setup ? var.aws_ssh_user : null
+      bastion_host = var.airgap_setup || var.proxy_setup ? var.registry_ip : null
+      bastion_user = var.airgap_setup || var.proxy_setup ? var.aws_ssh_user : null
    }
 
   tags = {
@@ -150,91 +150,91 @@ resource "aws_lb_target_group_attachment" "aws_tg_attachment_6443_server" {
 }
 
 resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_80_server" {
-  count = var.airgap_setup ? var.server_count : 0
+  count = var.airgap_setup || var.proxy_setup ? var.server_count : 0
   target_group_arn = aws_lb_target_group.aws_internal_tg_80[0].arn
   target_id        = aws_instance.server[count.index].id
   port             = 80
 }
 
 resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_443_server" {
-  count = var.airgap_setup ? var.server_count : 0
+  count = var.airgap_setup || var.proxy_setup ? var.server_count : 0
   target_group_arn = aws_lb_target_group.aws_internal_tg_443[0].arn
   target_id        = aws_instance.server[count.index].id
   port             = 443
 }
 
 resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_6443_server" {
-  count = var.airgap_setup ? var.server_count : 0
+  count = var.airgap_setup || var.proxy_setup ? var.server_count : 0
   target_group_arn = aws_lb_target_group.aws_internal_tg_6443[0].arn
   target_id        = aws_instance.server[count.index].id
   port             = 6443
 }
 
 resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_9345_server" {
-  count = var.airgap_setup ? var.server_count : 0
+  count = var.airgap_setup || var.proxy_setup ? var.server_count : 0
   target_group_arn = aws_lb_target_group.aws_internal_tg_9345[0].arn
   target_id        = aws_instance.server[count.index].id
   port             = 9345
 }
 
 resource "aws_lb_target_group_attachment" "aws_tg_attachment_80" {
-  count = var.airgap_setup ? var.agent_count : 0
+  count = var.airgap_setup || var.proxy_setup ? var.agent_count : 0
   target_group_arn = aws_lb_target_group.aws_tg_80.arn
   target_id        = aws_instance.agent[count.index].id
   port             = 80
 }
 
 resource "aws_lb_target_group_attachment" "aws_tg_attachment_443" {
-  count = var.airgap_setup ? var.agent_count : 0
+  count = var.airgap_setup || var.proxy_setup ? var.agent_count : 0
   target_group_arn = aws_lb_target_group.aws_tg_443.arn
   target_id        = aws_instance.agent[count.index].id
   port             = 443
 }
 
 resource "aws_lb_target_group_attachment" "aws_tg_attachment_6443" {
-  count = var.airgap_setup ? var.agent_count : 0
+  count = var.airgap_setup || var.proxy_setup ? var.agent_count : 0
   target_group_arn = aws_lb_target_group.aws_tg_6443.arn
   target_id        = aws_instance.agent[count.index].id
   port             = 6443
 }
 
 resource "aws_lb_target_group_attachment" "aws_tg_attachment_9345" {
-  count = var.airgap_setup ? var.agent_count : 0
+  count = var.airgap_setup || var.proxy_setup ? var.agent_count : 0
   target_group_arn = aws_lb_target_group.aws_tg_9345.arn
   target_id        = aws_instance.agent[count.index].id
   port             = 9345
 }
 
 resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_80" {
-  count = var.airgap_setup ? var.agent_count : 0
+  count = var.airgap_setup || var.proxy_setup ? var.agent_count : 0
   target_group_arn = aws_lb_target_group.aws_internal_tg_80[0].arn
   target_id        = aws_instance.agent[count.index].id
   port             = 80
 }
 
 resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_443" {
-  count = var.airgap_setup ? var.agent_count : 0
+  count = var.airgap_setup || var.proxy_setup ? var.agent_count : 0
   target_group_arn = aws_lb_target_group.aws_internal_tg_443[0].arn
   target_id        = aws_instance.agent[count.index].id
   port             = 443
 }
 
 resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_6443" {
-  count = var.airgap_setup ? var.agent_count : 0
+  count = var.airgap_setup || var.proxy_setup ? var.agent_count : 0
   target_group_arn = aws_lb_target_group.aws_internal_tg_6443[0].arn
   target_id        = aws_instance.agent[count.index].id
   port             = 6443
 }
 
 resource "aws_lb_target_group_attachment" "aws_internal_tg_attachment_9345" {
-  count = var.airgap_setup ? var.agent_count : 0
+  count = var.airgap_setup || var.proxy_setup ? var.agent_count : 0
   target_group_arn = aws_lb_target_group.aws_internal_tg_9345[0].arn
   target_id        = aws_instance.agent[count.index].id
   port             = 9345
 }
 
 resource "aws_lb" "aws_internal_nlb" {
-  count = var.airgap_setup ? 1 : 0
+  count = var.airgap_setup || var.proxy_setup ? 1 : 0
   internal           = true
   load_balancer_type = "network"
   subnets            = [var.aws_subnet]
@@ -317,7 +317,7 @@ resource "aws_lb_target_group" "aws_tg_9345" {
 }
 
 resource "aws_lb_target_group" "aws_internal_tg_80" {
-  count = var.airgap_setup ? 1 : 0
+  count = var.airgap_setup || var.proxy_setup ? 1 : 0
   port             = 80
   protocol         = "TCP"
   vpc_id           = var.aws_vpc
@@ -335,7 +335,7 @@ resource "aws_lb_target_group" "aws_internal_tg_80" {
 }
 
 resource "aws_lb_target_group" "aws_internal_tg_443" {
-  count = var.airgap_setup ? 1 : 0
+  count = var.airgap_setup || var.proxy_setup ? 1 : 0
   port             = 443
   protocol         = "TCP"
   vpc_id           = var.aws_vpc
@@ -353,7 +353,7 @@ resource "aws_lb_target_group" "aws_internal_tg_443" {
 }
 
 resource "aws_lb_target_group" "aws_internal_tg_6443" {
-  count = var.airgap_setup ? 1 : 0
+  count = var.airgap_setup || var.proxy_setup ? 1 : 0
   port             = 6443
   protocol         = "TCP"
   vpc_id           = var.aws_vpc
@@ -371,7 +371,7 @@ resource "aws_lb_target_group" "aws_internal_tg_6443" {
 }
 
 resource "aws_lb_target_group" "aws_internal_tg_9345" {
-  count = var.airgap_setup ? 1 : 0
+  count = var.airgap_setup || var.proxy_setup ? 1 : 0
   port             = 9345
   protocol         = "TCP"
   vpc_id           = var.aws_vpc
@@ -429,7 +429,7 @@ resource "aws_lb_listener" "aws_nlb_listener_9345" {
 }
 
 resource "aws_lb_listener" "aws_internal_nlb_listener_80" {
-  count = var.airgap_setup ? 1 : 0
+  count = var.airgap_setup || var.proxy_setup ? 1 : 0
   load_balancer_arn = aws_lb.aws_internal_nlb[0].arn
   port              = "80"
   protocol          = "TCP"
@@ -440,7 +440,7 @@ resource "aws_lb_listener" "aws_internal_nlb_listener_80" {
 }
 
 resource "aws_lb_listener" "aws_internal_nlb_listener_443" {
-  count = var.airgap_setup ? 1 : 0
+  count = var.airgap_setup || var.proxy_setup ? 1 : 0
   load_balancer_arn = aws_lb.aws_internal_nlb[0].arn
   port              = "443"
   protocol          = "TCP"
@@ -451,7 +451,7 @@ resource "aws_lb_listener" "aws_internal_nlb_listener_443" {
 }
 
 resource "aws_lb_listener" "aws_internal_nlb_listener_6443" {
-  count = var.airgap_setup ? 1 : 0
+  count = var.airgap_setup || var.proxy_setup ? 1 : 0
   load_balancer_arn = aws_lb.aws_internal_nlb[0].arn
   port              = "6443"
   protocol          = "TCP"
@@ -462,7 +462,7 @@ resource "aws_lb_listener" "aws_internal_nlb_listener_6443" {
 }
 
 resource "aws_lb_listener" "aws_internal_nlb_listener_9345" {
-  count = var.airgap_setup ? 1 : 0
+  count = var.airgap_setup || var.proxy_setup ? 1 : 0
   load_balancer_arn = aws_lb.aws_internal_nlb[0].arn
   port              = "9345"
   protocol          = "TCP"
@@ -481,7 +481,7 @@ resource "aws_route53_record" "aws_route53" {
 }
 
 resource "aws_route53_record" "aws_route53_internal" {
-  count = var.airgap_setup ? 1 : 0
+  count = var.airgap_setup || var.proxy_setup ? 1 : 0
   zone_id            = data.aws_route53_zone.selected.zone_id
   name               = "${var.aws_hostname_prefix}-internal"
   type               = "CNAME"

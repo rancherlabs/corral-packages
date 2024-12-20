@@ -1,5 +1,5 @@
 output "registry_fqdn" {
-  value = aws_route53_record.aws_route53.fqdn
+  value = var.proxy_setup ? null : aws_route53_record.aws_route53.fqdn
 }
 
 output "registry_ip" {
