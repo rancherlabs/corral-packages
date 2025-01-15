@@ -17,5 +17,6 @@ echo AWS_SECRET_ACCESS_KEY=${CORRAL_aws_secret_key} >> .env
 echo AZURE_CLIENT_ID=${CORRAL_azure_client_id} >> .env
 echo AZURE_CLIENT_SECRET=${CORRAL_azure_client_secret} >> .env
 echo AZURE_AKS_SUBSCRIPTION_ID=${CORRAL_azure_subscription_id} >> .env
+echo GKE_SERVICE_ACCOUNT=${CORRAL_gke_service_account} | base64 -d >> .env
 echo CUSTOM_NODE_IP="${CORRAL_custom_node_ip}" >> .env
 echo CUSTOM_NODE_KEY="${CORRAL_custom_node_key}" >> .env
