@@ -44,14 +44,14 @@ resource "aws_instance" "registry" {
 
   ebs_block_device {
     device_name           = "/dev/sda1"
-    volume_size           = "${var.aws_volume_size}"
+    volume_size           = "200"
     volume_type           = "gp3"
     encrypted             = true
     delete_on_termination = true
   }
 
   provisioner "remote-exec" {
-    inline = var.airgap_setup ? [
+    inline = var.airgap_setup || var.proxy_setup ? [
       "sudo su <<EOF",
       "echo \"${var.corral_public_key} ${self.key_name}\" > /root/.ssh/authorized_keys",
       "echo \"${var.corral_private_key}\"",
@@ -73,7 +73,7 @@ resource "aws_instance" "registry" {
    }
 
   tags = {
-    Name  = "${var.corral_user_id}-${random_id.cluster_id.hex}-registry"
+    Name  = "${var.corral_user_id}-${random_id.cluster_id.hex}-${var.proxy_setup ? "proxy-bastion" : "registry"}"
   }
 }
 

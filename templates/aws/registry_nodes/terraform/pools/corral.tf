@@ -14,7 +14,7 @@ variable "aws_ssh_user" {}
 variable "aws_security_group" {}
 variable "aws_vpc" {}
 variable "aws_subnet" {}
-variable "aws_volume_size" {}
 variable "install_docker" {}
 variable "instance_type" {}
 variable "airgap_setup" {}
+variable "proxy_setup" {}
