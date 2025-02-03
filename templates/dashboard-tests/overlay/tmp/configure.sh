@@ -20,3 +20,5 @@ echo AZURE_AKS_SUBSCRIPTION_ID=${CORRAL_azure_subscription_id} >> .env
 echo GKE_SERVICE_ACCOUNT="$(echo ${CORRAL_gke_service_account} | base64)" >> .env
 echo CUSTOM_NODE_IP="${CORRAL_custom_node_ip}" >> .env
 echo CUSTOM_NODE_KEY="${CORRAL_custom_node_key}" >> .env
+echo CUSTOM_NODE_IP_RKE1="${CORRAL_custom_node_ip_rke1}" >> .env
+echo CUSTOM_NODE_KEY_RKE1="${CORRAL_custom_node_key_rke1}" >> .env
