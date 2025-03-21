@@ -22,3 +22,5 @@ echo CUSTOM_NODE_IP="${CORRAL_custom_node_ip}" >> .env
 echo CUSTOM_NODE_KEY="${CORRAL_custom_node_key}" >> .env
 echo CUSTOM_NODE_IP_RKE1="${CORRAL_custom_node_ip_rke1}" >> .env
 echo CUSTOM_NODE_KEY_RKE1="${CORRAL_custom_node_key_rke1}" >> .env
+echo PERCY_TOKEN="${CORRAL_percy_token}" >> .env
+
