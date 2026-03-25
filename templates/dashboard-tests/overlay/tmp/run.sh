@@ -48,10 +48,10 @@ build_image () {
       "${GITHUB_URL}${CORRAL_dashboard_repo}" "${HOME}"/dashboard
 
     cd "${HOME}"/dashboard
-    if [ "${target_branch}" != "${dashboard_branch}" ]; then
-        echo "Target branch differs from PR branch. Fetching PR branch (${dashboard_branch}) tests and dependencies."
-        git fetch origin "${dashboard_branch}"
-        git checkout origin/"${dashboard_branch}" -- cypress/jenkins package.json yarn.lock cypress.config.ts || true
+    if [ "${target_branch}" != "master" ]; then
+        echo "Overlaying cypress/jenkins and dependencies from master onto ${target_branch}"
+        git fetch origin master
+        git checkout origin/master -- cypress/jenkins package.json yarn.lock cypress.config.ts || true
     fi
     cd "${HOME}"
 
