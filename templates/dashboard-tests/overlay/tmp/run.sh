@@ -51,7 +51,7 @@ build_image () {
     if [ "${target_branch}" != "${dashboard_branch}" ]; then
         echo "Target branch differs from PR branch. Fetching PR branch (${dashboard_branch}) tests and dependencies."
         git fetch origin "${dashboard_branch}"
-        git checkout origin/"${dashboard_branch}" -- cypress package.json yarn.lock cypress.config.ts || true
+        git checkout origin/"${dashboard_branch}" -- cypress/jenkins package.json yarn.lock cypress.config.ts || true
     fi
     cd "${HOME}"
 
