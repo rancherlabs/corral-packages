@@ -40,8 +40,6 @@ build_image () {
         version_number="${BASH_REMATCH[1]}"
         target_branch="release-${version_number}"
     fi
-
-    echo "Using target_branch: $target_branch for base, pulling tests from: $dashboard_branch"
     
     rm -rf "${HOME}"/dashboard
     git clone -b "${target_branch}" \
@@ -79,7 +77,7 @@ build_image () {
 
     cd "${HOME}"/dashboard
 
-    npm install -g yarn
+    npm install -g yarn@"${YARN_VERSION}"
     yarn config set ignore-engines true --silent
     
     yarn install --frozen-lockfile
